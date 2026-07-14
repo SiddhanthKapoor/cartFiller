@@ -277,6 +277,28 @@ export function nameSimilarity(query: string, productName: string): number {
   return Math.max(0, coverage - processedPenalty - Math.min(noisePenalty, 0.3))
 }
 
+/**
+ * Do two product titles refer to the same product? Used to map an
+ * API-chosen product onto its rendered DOM card so we can click the right
+ * Add button. Robust to brand/pack noise via token overlap + bigram backup.
+ */
+export function sameProduct(a: string, b: string): boolean {
+  const ca = cleanName(a)
+  const cb = cleanName(b)
+  if (ca && ca === cb) return true
+
+  const ta = tokenize(a)
+  const tb = tokenize(b)
+  if (ta.length === 0 || tb.length === 0) return false
+  const setB = new Set(tb)
+  const shared = ta.filter((t) => setB.has(t)).length
+  // Need real overlap: two shared tokens (so "tomato" ⊄ "tomato ketchup"),
+  // and most of the shorter title accounted for.
+  if (shared >= 2 && shared / Math.min(ta.length, tb.length) >= 0.6) return true
+  // brands/spellings differ but the strings are near-identical overall
+  return bigramSimilarity(ca, cb) >= 0.82
+}
+
 // ---------- pack fit ----------
 
 export interface Need {

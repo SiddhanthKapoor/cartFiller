@@ -1,5 +1,6 @@
 import type { ContentCommand, ContentMessage } from '@/shared/messages'
-import { runItem } from './runner'
+import { sleep } from './dom'
+import { runItem, type ItemOutcome } from './runner'
 import { removeOverlay, renderOverlay } from './overlay'
 
 /**
@@ -38,7 +39,18 @@ async function handleCommand(command: ContentCommand | undefined): Promise<void>
       busy = true
       renderOverlay(command.overlay, cancelJob)
       try {
-        const outcome = await runItem(command)
+        // Hard deadline: whatever happens inside the automation, the
+        // background always hears back and the job always moves on.
+        const outcome = await Promise.race<ItemOutcome>([
+          runItem(command),
+          sleep(30_000).then(
+            (): ItemOutcome => ({
+              kind: 'result',
+              status: 'failed',
+              error: 'Automation deadline exceeded',
+            }),
+          ),
+        ])
         if (outcome.kind === 'navigated') return // reload will re-announce
         const next = await send({
           type: 'ITEM_RESULT',

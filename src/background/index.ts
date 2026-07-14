@@ -11,7 +11,7 @@ import { getActiveJob, setActiveJob } from '@/shared/storage'
  */
 
 const WATCHDOG_ALARM = 'cookcart-watchdog'
-const ITEM_TIMEOUT_MS = 75_000
+const ITEM_TIMEOUT_MS = 40_000
 
 chrome.runtime.onMessage.addListener(
   (message: PopupMessage | ContentMessage, sender, sendResponse) => {
@@ -218,7 +218,24 @@ function pushToTab(tabId: number, command: ContentCommand): void {
   void chrome.tabs.sendMessage(tabId, command).catch(() => undefined)
 }
 
-// ---------- watchdog: skip items that stall ----------
+// ---------- watchdog: physically recover stalled fills ----------
+
+/**
+ * Reload the job tab at a search URL. A navigation re-injects the manifest
+ * content script, so this recovers even a dead script (e.g. its context was
+ * invalidated by an extension reload). Never message a script that may not
+ * be listening — drive the tab instead.
+ */
+async function reloadTabAt(job: FillJob, query: string): Promise<void> {
+  try {
+    await chrome.tabs.update(job.tabId, {
+      url: PROVIDER_URLS[job.provider].searchUrl(query),
+    })
+  } catch {
+    await publish({ ...job, status: 'cancelled' })
+    await chrome.alarms.clear(WATCHDOG_ALARM)
+  }
+}
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name !== WATCHDOG_ALARM) return
@@ -231,10 +248,22 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     if (Date.now() - job.lastProgressAt < ITEM_TIMEOUT_MS) return
 
     const item = job.items[job.currentIndex]
+    if (!item.stalled) {
+      // First stall on this item: reload the tab and retry it in place.
+      item.stalled = true
+      item.status = 'pending'
+      job.lastProgressAt = Date.now()
+      await publish(job)
+      await reloadTabAt(job, item.searchQuery)
+      return
+    }
+
+    // Second stall: give up on this item and physically move to the next.
     item.status = 'failed'
     item.error = 'Timed out'
     const command = await advance(job)
-    pushToTab(job.tabId, command)
+    if (command.type === 'RUN_ITEM') await reloadTabAt(job, command.item.searchQuery)
+    else pushToTab(job.tabId, command)
   })()
 })
 

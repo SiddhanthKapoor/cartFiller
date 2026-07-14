@@ -2,26 +2,6 @@
   "response": {
     "snippets": [
       {
-        "widget_type": "image_text_vr_type_header",
-        "data": {
-          "identity": {
-            "id": "product_container"
-          },
-          "title": {
-            "text": "Showing results for \"chicken\"",
-            "color": {
-              "type": "black",
-              "tint": "900"
-            },
-            "font": {
-              "size": "400",
-              "weight": "bold"
-            },
-            "number_of_lines": 2
-          }
-        }
-      },
-      {
         "widget_type": "product_card_snippet_type_2",
         "data": {
           "name": {
@@ -32,9 +12,6 @@
           },
           "normal_price": {
             "text": "₹229"
-          },
-          "mrp": {
-            "text": "₹285"
           },
           "is_sold_out": false,
           "inventory": 6,
@@ -75,9 +52,6 @@
           "normal_price": {
             "text": "₹116"
           },
-          "mrp": {
-            "text": "₹160"
-          },
           "is_sold_out": false,
           "inventory": 3,
           "atc_action": {
@@ -116,9 +90,6 @@
           },
           "normal_price": {
             "text": "₹99"
-          },
-          "mrp": {
-            "text": "₹149"
           },
           "is_sold_out": false,
           "inventory": 7,
@@ -159,9 +130,6 @@
           "normal_price": {
             "text": "₹210"
           },
-          "mrp": {
-            "text": "₹237"
-          },
           "is_sold_out": false,
           "inventory": 3,
           "atc_action": {
@@ -200,9 +168,6 @@
           },
           "normal_price": {
             "text": "₹139"
-          },
-          "mrp": {
-            "text": "₹155"
           },
           "is_sold_out": false,
           "inventory": 8,
@@ -243,7 +208,6 @@
           "normal_price": {
             "text": "₹285"
           },
-          "mrp": {},
           "is_sold_out": false,
           "inventory": 26,
           "atc_action": {

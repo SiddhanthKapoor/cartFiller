@@ -106,6 +106,8 @@ export interface JobItem {
   error?: string
   /** set once the item has used its second-chance retry */
   retried?: boolean
+  /** set after a stall already triggered one tab reload for this item */
+  stalled?: boolean
 }
 
 export type JobStatus = 'running' | 'done' | 'cancelled' | 'error'

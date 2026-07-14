@@ -1,31 +1,16 @@
 import type { ScrapedProduct } from '../matching'
 
 /**
- * The add-to-cart payload Blinkit embeds in every product card of a
- * /v1/layout/search response. This exact object is what the cart endpoint
- * (/v5/carts) consumes — we pass it straight through.
+ * Blinkit's /v1/layout/search response is a server-driven UI: each product
+ * card carries clean, structured data (exact name, pack, price, product id).
+ * We use it to *choose* the best product — the selection is far more
+ * accurate than parsing rendered DOM text (which is noisy and ad-polluted).
+ * The add itself is still performed by clicking the page's own button.
  */
-export interface BlinkitCartItem {
-  product_id: number
-  merchant_id: number
-  product_name: string
-  quantity: number
-  price: number
-  mrp?: number
-  unit?: string
-  inventory?: number
-  group_id?: number
-  merchant_type?: string
-  brand?: string
-  [key: string]: unknown
-}
-
-export interface BlinkitProduct {
-  /** normalized for the shared matching engine */
+export interface BlinkitApiProduct {
+  productId: number
   scraped: ScrapedProduct
-  cartItem: BlinkitCartItem
   soldOut: boolean
-  inventory: number
 }
 
 interface Snippet {
@@ -34,17 +19,19 @@ interface Snippet {
     name?: { text?: string }
     variant?: { text?: string }
     normal_price?: { text?: string }
-    mrp?: { text?: string }
     is_sold_out?: boolean
     inventory?: number
-    atc_action?: { add_to_cart?: { cart_item?: BlinkitCartItem } }
+    atc_action?: {
+      add_to_cart?: {
+        cart_item?: {
+          product_id?: number
+          product_name?: string
+          price?: number
+          unit?: string
+        }
+      }
+    }
   }
-}
-
-interface SearchResponse {
-  response?: { snippets?: Snippet[] }
-  // some deployments nest under a top-level `is_success`
-  is_success?: boolean
 }
 
 function priceFromText(text: string | undefined): number | null {
@@ -53,16 +40,12 @@ function priceFromText(text: string | undefined): number | null {
   return m ? Number(m[1].replace(/,/g, '')) : null
 }
 
-/**
- * Turn a Blinkit search response into ranked-engine-ready products, each
- * carrying the raw cart_item needed to add it via the API. Sold-out items
- * are kept but flagged so the caller can skip them.
- */
-export function parseBlinkitSearch(json: unknown): BlinkitProduct[] {
-  const snippets = (json as SearchResponse)?.response?.snippets
+/** Parse a search response into matching-engine-ready products. */
+export function parseBlinkitSearch(json: unknown): BlinkitApiProduct[] {
+  const snippets = (json as { response?: { snippets?: Snippet[] } })?.response?.snippets
   if (!Array.isArray(snippets)) return []
 
-  const products: BlinkitProduct[] = []
+  const products: BlinkitApiProduct[] = []
   for (const snippet of snippets) {
     if (!snippet.widget_type?.includes('product_card')) continue
     const data = snippet.data
@@ -75,18 +58,17 @@ export function parseBlinkitSearch(json: unknown): BlinkitProduct[] {
     const price =
       typeof cartItem.price === 'number'
         ? cartItem.price
-        : (priceFromText(data.normal_price?.text) ?? null)
+        : priceFromText(data.normal_price?.text)
 
     products.push({
+      productId: cartItem.product_id,
       scraped: {
         name,
         packText: cartItem.unit || data.variant?.text || '',
         priceInr: price,
         cardIndex: products.length,
       },
-      cartItem,
       soldOut: data.is_sold_out === true,
-      inventory: typeof cartItem.inventory === 'number' ? cartItem.inventory : (data.inventory ?? 0),
     })
   }
   return products
