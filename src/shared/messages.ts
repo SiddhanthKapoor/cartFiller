@@ -34,7 +34,6 @@ export type ContentCommand =
       /** compact status of every item, for the on-page overlay */
       overlay: OverlayState
     }
-  | { type: 'NAVIGATE'; url: string }
   | { type: 'JOB_COMPLETE'; overlay: OverlayState }
   | { type: 'IDLE' }
 

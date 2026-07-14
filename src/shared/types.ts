@@ -115,6 +115,8 @@ export interface FillJob {
   currentIndex: number
   status: JobStatus
   startedAt: number
+  /** watchdog: last time the job made observable progress */
+  lastProgressAt: number
 }
 
 // ---------- Settings ----------
