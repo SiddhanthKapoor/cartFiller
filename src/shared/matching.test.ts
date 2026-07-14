@@ -135,6 +135,27 @@ describe('chooseBest', () => {
     expect(spice?.cardIndex).toBe(0)
   })
 
+  it('picks fresh cream, not cream cheese', () => {
+    const best = chooseBest(
+      ing({ name: 'Fresh Cream', quantity: 100, unit: 'ml' }),
+      'fresh cream',
+      [
+        product('Britannia Cream Cheese', '180 g', 190, 0),
+        product('Amul Fresh Cream', '250 ml', 78, 1),
+      ],
+    )
+    expect(best?.cardIndex).toBe(1)
+  })
+
+  it('still matches cheese when that is the ingredient', () => {
+    const best = chooseBest(
+      ing({ name: 'Cheese', quantity: 200, unit: 'g' }),
+      'cheese',
+      [product('Amul Processed Cheese Block', '200 g', 130, 0)],
+    )
+    expect(best?.cardIndex).toBe(0)
+  })
+
   it('returns null when nothing plausibly matches', () => {
     const best = chooseBest(ing({ name: 'Saffron' }), 'saffron', [
       product('Sunflower Oil', '1 L', 150, 0),

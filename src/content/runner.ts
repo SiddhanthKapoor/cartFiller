@@ -7,6 +7,7 @@ import { pause, waitFor, waitForQuietDom } from './dom'
 import { adapterFor } from './providers'
 import { blinkitCartCount } from './providers/blinkitCart'
 import { blinkitApiSearch, hasLocation } from './providers/blinkitSearch'
+import { blinkitClientSearch } from './providers/blinkitNav'
 
 type RunItemCommand = Extract<ContentCommand, { type: 'RUN_ITEM' }>
 
@@ -32,35 +33,52 @@ export async function runItem(command: RunItemCommand): Promise<ItemOutcome> {
 
   const url = new URL(location.href)
   const query = (currentSearchQuery(url) ?? '').trim().toLowerCase()
-  if (!adapter.isSearchPage(url) || query !== item.searchQuery.trim().toLowerCase()) {
-    await pause(150, 350)
-    location.href = adapter.searchUrl(item.searchQuery)
-    return { kind: 'navigated' }
-  }
-
-  await waitForQuietDom()
-  const cards = await waitFor(
-    () => {
-      const scraped = adapter.scrapeCards()
-      return scraped.length > 0 ? scraped : null
-    },
-    { timeoutMs: 12_000, intervalMs: 300 },
-  )
-
-  if (!cards) {
-    return {
-      kind: 'result',
-      status: 'skipped',
-      error: `No products found for “${item.searchQuery}”`,
+  const need = item.searchQuery.trim().toLowerCase()
+  if (!adapter.isSearchPage(url) || query !== need) {
+    if (isBlinkit) {
+      // Search in-app (no full reload) — reliable where repeated full
+      // navigations make Blinkit render blank result pages.
+      const searched = await blinkitClientSearch(item.searchQuery)
+      if (!searched) {
+        await pause(150, 350)
+        location.href = adapter.searchUrl(item.searchQuery)
+        return { kind: 'navigated' }
+      }
+      // stay on the page; fall through to wait for the new results
+    } else {
+      await pause(150, 350)
+      location.href = adapter.searchUrl(item.searchQuery)
+      return { kind: 'navigated' }
     }
   }
 
-  // Pick the product. On Blinkit, prefer the API's clean catalogue data for
-  // selection (accurate names/packs, ad-aware) and then click the matching
-  // rendered card; fall back to matching on scraped DOM text.
-  const pick = isBlinkit
-    ? (await pickViaApi(command, cards)) ?? pickViaDom(command, cards)
-    : pickViaDom(command, cards)
+  await waitForQuietDom()
+
+  // Pick the product. On Blinkit we select from the clean search API and
+  // wait for the matching card to render — this both gives better matches
+  // and guarantees the DOM has refreshed to the new query (so we never click
+  // a stale card left over from the previous ingredient).
+  let pick: Pick | null = null
+  if (isBlinkit && hasLocation()) {
+    pick = await pickBlinkit(command, adapter)
+  }
+  if (!pick) {
+    const cards = await waitFor(
+      () => {
+        const scraped = adapter.scrapeCards()
+        return scraped.length > 0 ? scraped : null
+      },
+      { timeoutMs: 12_000, intervalMs: 300 },
+    )
+    if (!cards) {
+      return {
+        kind: 'result',
+        status: 'skipped',
+        error: `No products found for “${item.searchQuery}”`,
+      }
+    }
+    pick = pickViaDom(command, cards)
+  }
 
   if (!pick) {
     return {
@@ -135,14 +153,16 @@ function pickViaDom(command: RunItemCommand, cards: CardHandle[]): Pick | null {
 }
 
 /**
- * Rank products from Blinkit's clean search API, then click the highest-
- * ranked one that's actually rendered as a card we can add. Returns null if
- * the API is unavailable or none of its picks map to a visible card, so the
- * caller falls back to DOM matching.
+ * Rank products from Blinkit's clean search API, then wait for the best-
+ * ranked one to appear as a rendered card we can click. Waiting on the
+ * API-chosen product doubles as proof the DOM has refreshed to this query
+ * (not stale cards from the previous ingredient). Returns null if the API
+ * is unavailable so the caller can fall back to DOM scraping.
  */
-async function pickViaApi(command: RunItemCommand, cards: CardHandle[]): Promise<Pick | null> {
-  if (!hasLocation()) return null
-
+async function pickBlinkit(
+  command: RunItemCommand,
+  adapter: ReturnType<typeof adapterFor>,
+): Promise<Pick | null> {
   let apiProducts
   try {
     apiProducts = await blinkitApiSearch(command.item.searchQuery)
@@ -156,12 +176,19 @@ async function pickViaApi(command: RunItemCommand, cards: CardHandle[]): Promise
     command.item.searchQuery,
     apiProducts.map((p) => p.scraped),
   )
+  if (ranked.length === 0) return null
 
-  for (const product of ranked) {
-    const card = cards.find((c) => sameProduct(product.name, c.product.name))
-    if (card) return { card, best: product }
-  }
-  return null
+  return waitFor(
+    () => {
+      const cards = adapter.scrapeCards()
+      for (const product of ranked) {
+        const card = cards.find((c) => sameProduct(product.name, c.product.name))
+        if (card) return { card, best: product }
+      }
+      return null
+    },
+    { timeoutMs: 12_000, intervalMs: 300 },
+  )
 }
 
 /**

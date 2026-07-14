@@ -118,6 +118,13 @@ const PROCESSED_TOKENS = new Set([
   'chutney',
   'puree',
   'powder',
+  // distinct product categories that share a head noun with an ingredient:
+  // "fresh cream" must not match "cream cheese", "milk" not "milk cake" etc.
+  'cheese',
+  'cake',
+  'shake',
+  'biscuit',
+  'cookie',
   'dried',
   'flakes',
   'granules',
@@ -128,6 +135,8 @@ const PROCESSED_TOKENS = new Set([
   'dip',
   'pickle',
   'achar',
+  'sirka', // "sirka pyaz" = pickling onions, not cooking onions
+
   'chips',
   'crisps',
   'juice',
