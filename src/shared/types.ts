@@ -133,11 +133,46 @@ export interface Settings {
   budgetInr: number | null
 }
 
+export interface AiPreset {
+  label: string
+  baseUrl: string
+  model: string
+  keyHint: string
+}
+
+/** One-tap provider presets — anything OpenAI-compatible works. */
+export const AI_PRESETS: AiPreset[] = [
+  {
+    label: 'Gemini',
+    baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+    model: 'gemini-2.5-flash',
+    keyHint: 'Free key at aistudio.google.com/apikey',
+  },
+  {
+    label: 'OpenAI',
+    baseUrl: 'https://api.openai.com/v1',
+    model: 'gpt-4o-mini',
+    keyHint: 'Key at platform.openai.com/api-keys',
+  },
+  {
+    label: 'Groq',
+    baseUrl: 'https://api.groq.com/openai/v1',
+    model: 'llama-3.3-70b-versatile',
+    keyHint: 'Free key at console.groq.com/keys',
+  },
+  {
+    label: 'OpenRouter',
+    baseUrl: 'https://openrouter.ai/api/v1',
+    model: 'google/gemini-2.5-flash',
+    keyHint: 'Key at openrouter.ai/keys',
+  },
+]
+
 export const DEFAULT_SETTINGS: Settings = {
   ai: {
     apiKey: '',
-    baseUrl: 'https://api.openai.com/v1',
-    model: 'gpt-4o-mini',
+    baseUrl: AI_PRESETS[0].baseUrl,
+    model: AI_PRESETS[0].model,
   },
   skipPantryStaples: false,
   budgetInr: null,

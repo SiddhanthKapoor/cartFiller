@@ -23,13 +23,16 @@ Then in Chrome: `chrome://extensions` → enable **Developer mode** → **Load u
 
 ### Connect an AI provider
 
-Open the popup → gear icon → paste an API key from any OpenAI-compatible provider:
+Open the popup → gear icon → pick a provider preset and paste its API key. Any OpenAI-compatible endpoint works:
 
-| Provider   | Base URL                            | Example model      |
-| ---------- | ----------------------------------- | ------------------ |
-| OpenAI     | `https://api.openai.com/v1`         | `gpt-4o-mini`      |
-| Groq       | `https://api.groq.com/openai/v1`    | `llama-3.3-70b-versatile` |
-| OpenRouter | `https://openrouter.ai/api/v1`      | anything it hosts  |
+| Provider   | Base URL                                                  | Example model      |
+| ---------- | --------------------------------------------------------- | ------------------ |
+| **Gemini** (default, free tier) | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-2.5-flash` |
+| OpenAI     | `https://api.openai.com/v1`                               | `gpt-4o-mini`      |
+| Groq       | `https://api.groq.com/openai/v1`                          | `llama-3.3-70b-versatile` |
+| OpenRouter | `https://openrouter.ai/api/v1`                            | anything it hosts  |
+
+Gemini is the default: grab a free key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey), paste it, done. Google's OpenAI-compatibility layer means the same client code drives all four.
 
 The key lives in `chrome.storage.local` on your machine and is only ever sent to the provider you configured.
 

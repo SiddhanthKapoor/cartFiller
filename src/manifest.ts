@@ -37,6 +37,7 @@ export default defineManifest({
     'https://blinkit.com/*',
     'https://www.zeptonow.com/*',
     'https://www.swiggy.com/*',
+    'https://generativelanguage.googleapis.com/*',
     'https://api.openai.com/*',
     'https://api.groq.com/*',
     'https://openrouter.ai/*',

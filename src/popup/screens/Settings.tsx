@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Settings } from '@/shared/types'
+import { AI_PRESETS } from '@/shared/types'
 import { Field, IconButton, PrimaryButton, Screen, inputClass } from '../components/ui'
 import { ChevronLeftIcon } from '../components/icons'
 
@@ -40,16 +41,49 @@ export function SettingsScreen({
       </div>
 
       <div className="flex-1 space-y-5 overflow-y-auto px-5 py-3">
+        <div>
+          <span className="mb-1.5 block text-[11px] font-medium tracking-wide text-mist uppercase">
+            Provider
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {AI_PRESETS.map((preset) => {
+              const active = draft.ai.baseUrl === preset.baseUrl
+              return (
+                <button
+                  key={preset.label}
+                  onClick={() =>
+                    setDraft({
+                      ...draft,
+                      ai: { ...draft.ai, baseUrl: preset.baseUrl, model: preset.model },
+                    })
+                  }
+                  className={`rounded-full border px-3 py-1.5 text-[11.5px] transition-colors ${
+                    active
+                      ? 'border-accent/60 bg-accent-dim text-accent'
+                      : 'border-line bg-surface text-white/70 hover:border-line-strong hover:text-white'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              )
+            })}
+          </div>
+          <span className="mt-1.5 block text-[11px] leading-relaxed text-mist-dim">
+            {AI_PRESETS.find((p) => p.baseUrl === draft.ai.baseUrl)?.keyHint ??
+              'Custom OpenAI-compatible endpoint'}
+          </span>
+        </div>
+
         <Field
           label="API key"
-          hint="Any OpenAI-compatible key works (OpenAI, Groq, OpenRouter). Stored only in this browser's extension storage — never sent anywhere except your chosen provider."
+          hint="Any OpenAI-compatible key works (Gemini, OpenAI, Groq, OpenRouter). Stored only in this browser's extension storage — never sent anywhere except your chosen provider."
         >
           <div className="relative">
             <input
               type={showKey ? 'text' : 'password'}
               value={draft.ai.apiKey}
               onChange={(e) => setDraft({ ...draft, ai: { ...draft.ai, apiKey: e.target.value } })}
-              placeholder="sk-…"
+              placeholder="AIza… / sk-…"
               className={`${inputClass} pr-16`}
             />
             <button

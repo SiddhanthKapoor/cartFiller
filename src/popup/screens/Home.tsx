@@ -172,7 +172,7 @@ export function HomeScreen({
                       Connect an AI provider
                     </span>
                     <span className="mt-0.5 block text-[11.5px] text-mist">
-                      Add an OpenAI-compatible API key to start
+                      A free Gemini API key is enough to start
                     </span>
                   </span>
                 </button>
