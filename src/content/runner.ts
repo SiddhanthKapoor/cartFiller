@@ -94,9 +94,22 @@ export async function runItem(command: RunItemCommand): Promise<ItemOutcome> {
 
   await pause()
   const clicked = await adapter.addToCart(card)
+  let landed = await confirmAdded(isBlinkit, countBefore, clicked)
 
-  // Confirm the item is really in the cart.
-  const landed = await confirmAdded(isBlinkit, countBefore, clicked)
+  // One retry for items that need a second gesture (variant sheet, slow
+  // paint) — but only if the first attempt genuinely didn't land, so we
+  // never double-add something that just registered late.
+  if (!landed && isBlinkit && countBefore !== null) {
+    const now = blinkitCartCount()
+    if (now !== null && now > countBefore) {
+      landed = true
+    } else {
+      await pause(400, 700)
+      await adapter.addToCart(card)
+      landed = await confirmAdded(isBlinkit, countBefore, true)
+    }
+  }
+
   if (!landed) {
     return {
       kind: 'result',
@@ -178,17 +191,30 @@ async function pickBlinkit(
   )
   if (ranked.length === 0) return null
 
-  return waitFor(
+  // Wait for the best-ranked product to render, not merely the first one that
+  // happens to be on screen. Otherwise a lower-ranked but early-rendered item
+  // (e.g. "Green Chilli Pickle" before fresh green chillies paint) gets
+  // clicked. We take the #1 pick the moment it appears, but keep polling —
+  // settling for the best rendered so far only once the window elapses.
+  const seen: { rank: number; pick: Pick | null } = { rank: Infinity, pick: null }
+  const top = await waitFor(
     () => {
       const cards = adapter.scrapeCards()
-      for (const product of ranked) {
-        const card = cards.find((c) => sameProduct(product.name, c.product.name))
-        if (card) return { card, best: product }
+      for (let i = 0; i < ranked.length; i++) {
+        const card = cards.find((c) => sameProduct(ranked[i].name, c.product.name))
+        if (!card) continue
+        if (i === 0) return { card, best: ranked[0] } // top pick is here — done
+        if (i < seen.rank) {
+          seen.rank = i
+          seen.pick = { card, best: ranked[i] }
+        }
+        break // best currently-rendered found this tick; wait for something better
       }
       return null
     },
     { timeoutMs: 12_000, intervalMs: 300 },
   )
+  return top ?? seen.pick
 }
 
 /**
@@ -207,7 +233,7 @@ async function confirmAdded(
         const c = blinkitCartCount()
         return c !== null && c > countBefore ? c : null
       },
-      { timeoutMs: 6_000, intervalMs: 250 },
+      { timeoutMs: 8_000, intervalMs: 250 },
     )
     return ok !== null
   }

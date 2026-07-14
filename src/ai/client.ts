@@ -3,7 +3,8 @@ import { activeApiKey } from '@/shared/types'
 import { AI_PROVIDERS } from '@/shared/aiProviders'
 import { normalizeIngredient } from '@/shared/normalize'
 import { toBase, UNIT_INFO } from '@/shared/units'
-import { aiResponseSchema, type AiResponse } from './schema'
+import { aiIngredientSchema, type AiResponse } from './schema'
+import { z } from 'zod'
 import { SYSTEM_PROMPT, buildUserPrompt } from './prompt'
 
 export type AiErrorCode = 'no-key' | 'auth' | 'http' | 'network' | 'parse'
@@ -229,10 +230,53 @@ export async function generateShoppingList(
       : await chatCompletion(provider.baseUrl, apiKey, settings.model, userPrompt, true)
   const json = extractJson(content)
 
-  const parsed = aiResponseSchema.safeParse(json)
-  if (!parsed.success) {
-    throw new AiError('parse', 'The AI response did not match the expected format. Try again.')
+  return toShoppingList(coerceResponse(json, query))
+}
+
+const numberish = z.preprocess((v) => {
+  if (typeof v === 'number') return Number.isFinite(v) ? v : undefined
+  if (typeof v === 'string') {
+    const n = parseFloat(v.replace(/[^\d.]/g, ''))
+    return Number.isFinite(n) ? n : undefined
+  }
+  return undefined
+}, z.number())
+
+/**
+ * Turn a raw AI object into a validated response *leniently*: coerce the
+ * top-level fields with sensible fallbacks and keep every ingredient that
+ * parses, dropping only the ones that don't. A single malformed ingredient
+ * (or an extra field the model invented) must never sink the whole recipe.
+ */
+export function coerceResponse(json: unknown, query: string): AiResponse {
+  const obj = (json ?? {}) as Record<string, unknown>
+
+  const rawIngredients = Array.isArray(obj.ingredients) ? obj.ingredients : []
+  const ingredients = rawIngredients
+    .map((item) => aiIngredientSchema.safeParse(item))
+    .flatMap((r) => (r.success ? [r.data] : []))
+
+  if (ingredients.length === 0) {
+    throw new AiError('parse', 'The AI returned no usable ingredients. Try again.')
   }
 
-  return toShoppingList(parsed.data)
+  const servings = numberish.safeParse(obj.servings)
+  const cost = numberish.safeParse(obj.estimatedCostInr)
+  const nutrition = z
+    .object({
+      caloriesPerServing: numberish,
+      proteinG: numberish,
+      carbsG: numberish,
+      fatG: numberish,
+    })
+    .safeParse(obj.nutrition)
+
+  return {
+    dish: typeof obj.dish === 'string' && obj.dish.trim() ? obj.dish.trim().slice(0, 120) : query,
+    servings: servings.success ? Math.min(50, Math.max(1, Math.round(servings.data))) : 4,
+    cuisine: typeof obj.cuisine === 'string' ? obj.cuisine.trim().slice(0, 60) : undefined,
+    ingredients: ingredients.slice(0, 80),
+    estimatedCostInr: cost.success ? Math.max(0, cost.data) : undefined,
+    nutrition: nutrition.success ? nutrition.data : undefined,
+  }
 }

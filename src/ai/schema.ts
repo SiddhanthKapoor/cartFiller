@@ -52,23 +52,42 @@ const UNIT_ALIASES: Record<string, Unit> = {
 }
 
 const unitSchema = z.preprocess(
-  (value) => (typeof value === 'string' ? UNIT_ALIASES[value.toLowerCase().trim()] : value),
+  (value) =>
+    typeof value === 'string'
+      ? (UNIT_ALIASES[value.toLowerCase().trim()] ?? 'piece')
+      : value,
   z.enum(['g', 'kg', 'ml', 'l', 'piece', 'packet', 'bunch', 'cup', 'tbsp', 'tsp', 'pinch']),
 )
 
-const aiIngredientSchema = z.object({
+// Coerce loose LLM output: numbers arrive as "200" or "1/2" sometimes.
+const looseNumber = z.preprocess((v) => {
+  if (typeof v === 'number') return v
+  if (typeof v === 'string') {
+    const frac = /^(\d+)\s*\/\s*(\d+)$/.exec(v.trim())
+    if (frac) return Number(frac[1]) / Number(frac[2])
+    const n = parseFloat(v.replace(/[^\d.]/g, ''))
+    return Number.isFinite(n) ? n : undefined
+  }
+  return v
+}, z.number())
+
+export const aiIngredientSchema = z.object({
   name: z.string().trim().min(1).max(80),
-  quantity: z.number().positive().max(50_000),
+  quantity: looseNumber.pipe(z.number().positive().max(100_000)),
   unit: unitSchema,
-  optional: z.boolean().default(false),
+  optional: z.coerce.boolean().default(false),
 })
 
+export type AiIngredient = z.infer<typeof aiIngredientSchema>
+
+// Top-level fields are validated leniently in client.ts (bad ingredients are
+// dropped rather than failing the whole recipe); this stays for typing.
 export const aiResponseSchema = z.object({
   dish: z.string().trim().min(1).max(120),
   servings: z.number().int().min(1).max(50),
   cuisine: z.string().trim().max(60).optional(),
-  ingredients: z.array(aiIngredientSchema).min(1).max(60),
-  estimatedCostInr: z.number().nonnegative().max(100_000).optional(),
+  ingredients: z.array(aiIngredientSchema).min(1).max(80),
+  estimatedCostInr: z.number().nonnegative().max(1_000_000).optional(),
   nutrition: z
     .object({
       caloriesPerServing: z.number().nonnegative().max(10_000),

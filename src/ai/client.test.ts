@@ -1,7 +1,43 @@
 import { describe, expect, it } from 'vitest'
 import { toBase } from '@/shared/units'
-import { extractJson, toShoppingList } from './client'
+import { coerceResponse, extractJson, toShoppingList } from './client'
 import { aiResponseSchema } from './schema'
+
+describe('coerceResponse (tolerant parsing)', () => {
+  it('keeps good ingredients and drops malformed ones', () => {
+    const r = coerceResponse(
+      {
+        dish: 'Sabudana Khichdi',
+        servings: '2',
+        ingredients: [
+          { name: 'Sabudana', quantity: '200', unit: 'grams' },
+          { name: '', quantity: 5, unit: 'g' }, // bad: empty name
+          { name: 'Peanuts', quantity: 50, unit: 'g' },
+          { name: 'Salt', quantity: 'to taste', unit: 'tsp' }, // bad: non-numeric qty
+        ],
+      },
+      'Sabu Dana for 2 people',
+    )
+    expect(r.servings).toBe(2)
+    expect(r.ingredients.map((i) => i.name)).toEqual(['Sabudana', 'Peanuts'])
+    expect(r.ingredients[0].quantity).toBe(200)
+  })
+
+  it('falls back to the query for a missing dish and coerces junk numbers', () => {
+    const r = coerceResponse(
+      { ingredients: [{ name: 'Rice', quantity: 500, unit: 'g' }], estimatedCostInr: '₹120' },
+      'whatever',
+    )
+    expect(r.dish).toBe('whatever')
+    expect(r.servings).toBe(4)
+    expect(r.estimatedCostInr).toBe(120)
+  })
+
+  it('throws only when there is nothing usable at all', () => {
+    expect(() => coerceResponse({ ingredients: [] }, 'x')).toThrow()
+    expect(() => coerceResponse({}, 'x')).toThrow()
+  })
+})
 
 describe('extractJson', () => {
   it('parses clean JSON', () => {
