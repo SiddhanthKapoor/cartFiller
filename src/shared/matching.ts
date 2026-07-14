@@ -1,0 +1,325 @@
+import type { Ingredient } from './types'
+import { toBase, type Dimension } from './units'
+import { cleanName, normalizeIngredient } from './normalize'
+
+/** A product card as scraped from a store listing page. */
+export interface ScrapedProduct {
+  name: string
+  /** e.g. "500 g", "1 kg", "2 x 500 ml", "6 pcs" */
+  packText: string
+  priceInr: number | null
+  /** opaque index so the content script can find the card again */
+  cardIndex: number
+}
+
+export interface ParsedPack {
+  /** total content in base units (g / ml / piece) */
+  baseValue: number
+  dimension: Dimension
+}
+
+export interface RankedProduct extends ScrapedProduct {
+  score: number
+  nameScore: number
+  packScore: number
+  /** how many of this pack to add to the cart */
+  unitsToAdd: number
+  pack: ParsedPack | null
+}
+
+const PACK_UNIT_TO_BASE: Record<string, { dimension: Dimension; toBase: number }> = {
+  kg: { dimension: 'mass', toBase: 1000 },
+  g: { dimension: 'mass', toBase: 1 },
+  gm: { dimension: 'mass', toBase: 1 },
+  gms: { dimension: 'mass', toBase: 1 },
+  gram: { dimension: 'mass', toBase: 1 },
+  grams: { dimension: 'mass', toBase: 1 },
+  mg: { dimension: 'mass', toBase: 0.001 },
+  l: { dimension: 'volume', toBase: 1000 },
+  ltr: { dimension: 'volume', toBase: 1000 },
+  litre: { dimension: 'volume', toBase: 1000 },
+  litres: { dimension: 'volume', toBase: 1000 },
+  liter: { dimension: 'volume', toBase: 1000 },
+  liters: { dimension: 'volume', toBase: 1000 },
+  ml: { dimension: 'volume', toBase: 1 },
+  pc: { dimension: 'count', toBase: 1 },
+  pcs: { dimension: 'count', toBase: 1 },
+  piece: { dimension: 'count', toBase: 1 },
+  pieces: { dimension: 'count', toBase: 1 },
+  unit: { dimension: 'count', toBase: 1 },
+  units: { dimension: 'count', toBase: 1 },
+  pack: { dimension: 'count', toBase: 1 },
+  packs: { dimension: 'count', toBase: 1 },
+  dozen: { dimension: 'count', toBase: 12 },
+}
+
+const PACK_RE =
+  /(\d+(?:\.\d+)?)\s*(kg|gms?|grams?|mg|ltr|litres?|liters?|ml|l|pcs?|pieces?|units?|packs?|dozen|g)\b/i
+const MULTI_PACK_RE = /(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(kg|gms?|grams?|ml|l|ltr|litres?|liters?|g)\b/i
+const RANGE_PACK_RE = /(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)\s*(kg|gms?|grams?|ml|l|g)\b/i
+
+/**
+ * Parse a store pack description into base units.
+ * Handles "500 g", "1 kg", "2 x 500 ml", "6 pcs", "1 pc (450-550 g)", "1 dozen".
+ */
+export function parsePack(text: string): ParsedPack | null {
+  if (!text) return null
+  const normalized = text.toLowerCase().replace(/,/g, '')
+
+  const multi = MULTI_PACK_RE.exec(normalized)
+  if (multi) {
+    const unit = PACK_UNIT_TO_BASE[multi[3]]
+    if (unit) {
+      return {
+        baseValue: Number(multi[1]) * Number(multi[2]) * unit.toBase,
+        dimension: unit.dimension,
+      }
+    }
+  }
+
+  // "450-550 g" -> use the midpoint
+  const range = RANGE_PACK_RE.exec(normalized)
+  if (range) {
+    const unit = PACK_UNIT_TO_BASE[range[3]]
+    if (unit) {
+      const mid = (Number(range[1]) + Number(range[2])) / 2
+      return { baseValue: mid * unit.toBase, dimension: unit.dimension }
+    }
+  }
+
+  // Prefer a mass/volume mention over a count mention when both exist:
+  // "1 pc (approx 500 g)" should parse as 500 g.
+  let count: ParsedPack | null = null
+  const re = new RegExp(PACK_RE.source, 'gi')
+  let m: RegExpExecArray | null
+  while ((m = re.exec(normalized))) {
+    const unit = PACK_UNIT_TO_BASE[m[2].toLowerCase()]
+    if (!unit) continue
+    const pack: ParsedPack = {
+      baseValue: Number(m[1]) * unit.toBase,
+      dimension: unit.dimension,
+    }
+    if (pack.dimension !== 'count') return pack
+    count = count ?? pack
+  }
+  return count
+}
+
+// ---------- name similarity ----------
+
+/**
+ * Tokens that indicate a *processed* variant of a raw ingredient.
+ * If the query doesn't mention them, a product containing them is
+ * probably the wrong thing ("tomato" -> "tomato ketchup").
+ */
+const PROCESSED_TOKENS = new Set([
+  'ketchup',
+  'sauce',
+  'pickle',
+  'achar',
+  'chips',
+  'crisps',
+  'juice',
+  'jam',
+  'candy',
+  'flavour',
+  'flavored',
+  'flavoured',
+  'instant',
+  'ready',
+  'mix',
+  'premix',
+  'syrup',
+  'essence',
+  'papad',
+  'soup',
+  'cube',
+  'seasoning',
+  'namkeen',
+  'wafers',
+])
+
+const STOPWORDS = new Set(['the', 'and', 'with', 'combo', 'pack', 'of', 'per'])
+
+export function tokenize(text: string): string[] {
+  return cleanName(text)
+    .split(' ')
+    .filter((t) => t.length > 1 && !STOPWORDS.has(t))
+}
+
+/** Dice coefficient over character bigrams — tolerant of small spelling drift. */
+function bigramSimilarity(a: string, b: string): number {
+  if (a === b) return 1
+  if (a.length < 2 || b.length < 2) return 0
+  const bigrams = new Map<string, number>()
+  for (let i = 0; i < a.length - 1; i++) {
+    const bg = a.slice(i, i + 2)
+    bigrams.set(bg, (bigrams.get(bg) ?? 0) + 1)
+  }
+  let hits = 0
+  for (let i = 0; i < b.length - 1; i++) {
+    const bg = b.slice(i, i + 2)
+    const n = bigrams.get(bg) ?? 0
+    if (n > 0) {
+      hits++
+      bigrams.set(bg, n - 1)
+    }
+  }
+  return (2 * hits) / (a.length - 1 + (b.length - 1))
+}
+
+/**
+ * Score how well a product title matches the search query, 0..1.
+ * Every query token should appear (fuzzily) in the title; extra
+ * "processed food" tokens are penalized so raw ingredients win.
+ */
+export function nameSimilarity(query: string, productName: string): number {
+  const queryTokens = tokenize(query)
+  const productTokens = tokenize(productName)
+  if (queryTokens.length === 0 || productTokens.length === 0) return 0
+
+  let covered = 0
+  for (const qt of queryTokens) {
+    let best = 0
+    for (const pt of productTokens) {
+      best = Math.max(best, bigramSimilarity(qt, pt))
+      if (best === 1) break
+    }
+    covered += best
+  }
+  const coverage = covered / queryTokens.length
+
+  const querySet = new Set(queryTokens)
+  let processedPenalty = 0
+  let noisePenalty = 0
+  for (const pt of productTokens) {
+    if (querySet.has(pt)) continue
+    if (PROCESSED_TOKENS.has(pt)) processedPenalty += 0.35
+    else noisePenalty += 0.04
+  }
+
+  return Math.max(0, coverage - processedPenalty - Math.min(noisePenalty, 0.2))
+}
+
+// ---------- pack fit ----------
+
+export interface Need {
+  baseValue: number
+  dimension: Dimension
+  /** grams per piece, when converting count <-> mass */
+  pieceWeightG?: number
+}
+
+export function ingredientNeed(ingredient: Ingredient, pieceWeightG?: number): Need {
+  const base = toBase(ingredient.quantity, ingredient.unit)
+  return { baseValue: base.value, dimension: base.dimension, pieceWeightG }
+}
+
+/** Convert a need into the pack's dimension if possible (piece <-> mass via pieceWeightG). */
+function alignNeed(need: Need, packDimension: Dimension): number | null {
+  if (need.dimension === packDimension) return need.baseValue
+  if (need.pieceWeightG) {
+    if (need.dimension === 'count' && packDimension === 'mass')
+      return need.baseValue * need.pieceWeightG
+    if (need.dimension === 'mass' && packDimension === 'count')
+      return need.baseValue / need.pieceWeightG
+  }
+  // volume <-> mass: assume density ~1 (fine for milk, curd, purees)
+  if (
+    (need.dimension === 'volume' && packDimension === 'mass') ||
+    (need.dimension === 'mass' && packDimension === 'volume')
+  )
+    return need.baseValue
+  return null
+}
+
+const MAX_UNITS_PER_PRODUCT = 5
+
+export interface PackFit {
+  score: number
+  unitsToAdd: number
+}
+
+/**
+ * How well does this pack size satisfy the need?
+ * Perfect = smallest number of packs with least waste.
+ */
+export function packFit(need: Need, pack: ParsedPack | null): PackFit {
+  if (!pack || pack.baseValue <= 0) return { score: 0.4, unitsToAdd: 1 }
+
+  const aligned = alignNeed(need, pack.dimension)
+  if (aligned === null || aligned <= 0) return { score: 0.35, unitsToAdd: 1 }
+
+  const units = Math.min(MAX_UNITS_PER_PRODUCT, Math.max(1, Math.ceil(aligned / pack.baseValue)))
+  const bought = units * pack.baseValue
+  const waste = (bought - aligned) / aligned // 0 = exact
+  const shortage = bought < aligned ? (aligned - bought) / aligned : 0
+
+  // Waste decays slowly (buying 1 kg for 750 g is fine); shortage decays fast.
+  const wasteScore = 1 / (1 + waste * 0.9)
+  const unitScore = 1 / (1 + (units - 1) * 0.15)
+  const shortagePenalty = shortage * 1.5
+
+  return {
+    score: Math.max(0, wasteScore * unitScore - shortagePenalty),
+    unitsToAdd: units,
+  }
+}
+
+// ---------- ranking ----------
+
+const NAME_WEIGHT = 0.62
+const PACK_WEIGHT = 0.3
+const PRICE_WEIGHT = 0.08
+const MIN_NAME_SCORE = 0.45
+
+/**
+ * Rank scraped products against an ingredient. Returns best-first.
+ * Products whose names don't plausibly match are dropped entirely.
+ */
+export function rankProducts(
+  ingredient: Ingredient,
+  searchQuery: string,
+  products: ScrapedProduct[],
+): RankedProduct[] {
+  const { pieceWeightG } = normalizeIngredient(ingredient.name)
+  const need = ingredientNeed(ingredient, pieceWeightG)
+
+  const priced = products.filter((p) => p.priceInr !== null && p.priceInr > 0)
+  const cheapest = priced.length > 0 ? Math.min(...priced.map((p) => p.priceInr!)) : null
+
+  const ranked: RankedProduct[] = []
+  for (const product of products) {
+    const nameScore = Math.max(
+      nameSimilarity(searchQuery, product.name),
+      nameSimilarity(ingredient.name, product.name),
+    )
+    if (nameScore < MIN_NAME_SCORE) continue
+
+    const pack = parsePack(product.packText) ?? parsePack(product.name)
+    const fit = packFit(need, pack)
+
+    // Mild preference for cheaper options among plausible matches.
+    const priceScore =
+      cheapest !== null && product.priceInr ? cheapest / product.priceInr : 0.5
+
+    ranked.push({
+      ...product,
+      nameScore,
+      packScore: fit.score,
+      unitsToAdd: fit.unitsToAdd,
+      pack,
+      score: NAME_WEIGHT * nameScore + PACK_WEIGHT * fit.score + PRICE_WEIGHT * priceScore,
+    })
+  }
+
+  return ranked.sort((a, b) => b.score - a.score)
+}
+
+export function chooseBest(
+  ingredient: Ingredient,
+  searchQuery: string,
+  products: ScrapedProduct[],
+): RankedProduct | null {
+  return rankProducts(ingredient, searchQuery, products)[0] ?? null
+}
