@@ -1,0 +1,276 @@
+{
+  "response": {
+    "snippets": [
+      {
+        "widget_type": "image_text_vr_type_header",
+        "data": {
+          "identity": {
+            "id": "product_container"
+          },
+          "title": {
+            "text": "Showing results for \"chicken\"",
+            "color": {
+              "type": "black",
+              "tint": "900"
+            },
+            "font": {
+              "size": "400",
+              "weight": "bold"
+            },
+            "number_of_lines": 2
+          }
+        }
+      },
+      {
+        "widget_type": "product_card_snippet_type_2",
+        "data": {
+          "name": {
+            "text": "Meatigo Fresh Boneless Chicken Breast"
+          },
+          "variant": {
+            "text": "400 g"
+          },
+          "normal_price": {
+            "text": "₹229"
+          },
+          "mrp": {
+            "text": "₹285"
+          },
+          "is_sold_out": false,
+          "inventory": 6,
+          "atc_action": {
+            "add_to_cart": {
+              "cart_item": {
+                "product_id": 740827,
+                "merchant_id": 31719,
+                "product_name": "Meatigo Fresh Boneless Chicken Breast",
+                "quantity": 1,
+                "unavailable_quantity": 0,
+                "price": 229,
+                "mrp": 285,
+                "unit": "400 g",
+                "inventory": 6,
+                "meta": null,
+                "image_url": "https://cdn.grofers.com/da/cms-assets/cms/product/44c2c0d7-d626-4e29-aaca-b1aa2006de2c.png",
+                "group_id": 2513993,
+                "merchant_type": "express",
+                "eta_identifier": "express",
+                "brand": "Meatigo",
+                "display_name": "Meatigo Fresh Boneless Chicken Breast"
+              }
+            },
+            "type": "add_to_cart"
+          }
+        }
+      },
+      {
+        "widget_type": "product_card_snippet_type_2",
+        "data": {
+          "name": {
+            "text": "Nutrich Chicken Curry Cut"
+          },
+          "variant": {
+            "text": "400 g"
+          },
+          "normal_price": {
+            "text": "₹116"
+          },
+          "mrp": {
+            "text": "₹160"
+          },
+          "is_sold_out": false,
+          "inventory": 3,
+          "atc_action": {
+            "add_to_cart": {
+              "cart_item": {
+                "product_id": 748210,
+                "merchant_id": 31719,
+                "product_name": "Nutrich Chicken Curry Cut",
+                "quantity": 1,
+                "unavailable_quantity": 0,
+                "price": 116,
+                "mrp": 160,
+                "unit": "400 g",
+                "inventory": 3,
+                "meta": null,
+                "image_url": "https://cdn.grofers.com/da/cms-assets/cms/product/531ec37c-e9c8-4dcf-ab4d-10de0a7427b4.png",
+                "group_id": 2559145,
+                "merchant_type": "express",
+                "eta_identifier": "express",
+                "brand": "Nutrich",
+                "display_name": "Nutrich Chicken Curry Cut"
+              }
+            },
+            "type": "add_to_cart"
+          }
+        }
+      },
+      {
+        "widget_type": "product_card_snippet_type_2",
+        "data": {
+          "name": {
+            "text": "Katlego Chicken Curry Cut"
+          },
+          "variant": {
+            "text": "400 g"
+          },
+          "normal_price": {
+            "text": "₹99"
+          },
+          "mrp": {
+            "text": "₹149"
+          },
+          "is_sold_out": false,
+          "inventory": 7,
+          "atc_action": {
+            "add_to_cart": {
+              "cart_item": {
+                "product_id": 723743,
+                "merchant_id": 31719,
+                "product_name": "Katlego Chicken Curry Cut",
+                "quantity": 1,
+                "unavailable_quantity": 0,
+                "price": 99,
+                "mrp": 149,
+                "unit": "400 g",
+                "inventory": 7,
+                "meta": null,
+                "image_url": "https://cdn.grofers.com/da/cms-assets/cms/product/rc-upload-1771079945541-3.png",
+                "group_id": 2488517,
+                "merchant_type": "express",
+                "eta_identifier": "express",
+                "brand": "Katlego",
+                "display_name": "Katlego Chicken Curry Cut"
+              }
+            },
+            "type": "add_to_cart"
+          }
+        }
+      },
+      {
+        "widget_type": "product_card_snippet_type_2",
+        "data": {
+          "name": {
+            "text": "Delichic Raw Frozen Chicken Curry Cut"
+          },
+          "variant": {
+            "text": "500 g"
+          },
+          "normal_price": {
+            "text": "₹210"
+          },
+          "mrp": {
+            "text": "₹237"
+          },
+          "is_sold_out": false,
+          "inventory": 3,
+          "atc_action": {
+            "add_to_cart": {
+              "cart_item": {
+                "product_id": 532236,
+                "merchant_id": 31719,
+                "product_name": "Delichic Raw Frozen Chicken Curry Cut",
+                "quantity": 1,
+                "unavailable_quantity": 0,
+                "price": 210,
+                "mrp": 237,
+                "unit": "500 g",
+                "inventory": 3,
+                "meta": null,
+                "image_url": "https://cdn.grofers.com/da/cms-assets/cms/product/083ce352-d863-411c-9fd3-78021f3ca4aa.png",
+                "group_id": 1321166,
+                "merchant_type": "express",
+                "eta_identifier": "express",
+                "brand": "Delichic",
+                "display_name": "Delichic Raw Frozen Chicken Curry Cut"
+              }
+            },
+            "type": "add_to_cart"
+          }
+        }
+      },
+      {
+        "widget_type": "product_card_snippet_type_2",
+        "data": {
+          "name": {
+            "text": "Abis Pro Chicken Curry Cut"
+          },
+          "variant": {
+            "text": "500 g"
+          },
+          "normal_price": {
+            "text": "₹139"
+          },
+          "mrp": {
+            "text": "₹155"
+          },
+          "is_sold_out": false,
+          "inventory": 8,
+          "atc_action": {
+            "add_to_cart": {
+              "cart_item": {
+                "product_id": 690207,
+                "merchant_id": 31719,
+                "product_name": "Abis Pro Chicken Curry Cut",
+                "quantity": 1,
+                "unavailable_quantity": 0,
+                "price": 139,
+                "mrp": 155,
+                "unit": "500 g",
+                "inventory": 8,
+                "meta": null,
+                "image_url": "https://cdn.grofers.com/da/cms-assets/cms/product/rc-upload-1779172331442-740.png",
+                "group_id": 2705150,
+                "merchant_type": "express",
+                "eta_identifier": "express",
+                "brand": "Abis Pro",
+                "display_name": "Abis Pro Chicken Curry Cut"
+              }
+            },
+            "type": "add_to_cart"
+          }
+        }
+      },
+      {
+        "widget_type": "product_card_snippet_type_2",
+        "data": {
+          "name": {
+            "text": "Meatzza Boneless Frozen Chicken Breast (Antibiotic Free)"
+          },
+          "variant": {
+            "text": "500 g"
+          },
+          "normal_price": {
+            "text": "₹285"
+          },
+          "mrp": {},
+          "is_sold_out": false,
+          "inventory": 26,
+          "atc_action": {
+            "add_to_cart": {
+              "cart_item": {
+                "product_id": 461016,
+                "merchant_id": 31719,
+                "product_name": "Meatzza Boneless Frozen Chicken Breast (Antibiotic Free)",
+                "quantity": 1,
+                "unavailable_quantity": 0,
+                "price": 285,
+                "mrp": 285,
+                "unit": "500 g",
+                "inventory": 26,
+                "meta": null,
+                "image_url": "https://cdn.grofers.com/da/cms-assets/cms/product/73d677d7-5b06-4e2d-86c9-31c654e49470.png",
+                "group_id": 1321148,
+                "merchant_type": "express",
+                "eta_identifier": "express",
+                "brand": "Meatzza",
+                "display_name": "Meatzza Boneless Frozen Chicken Breast (Antibiotic Free)"
+              }
+            },
+            "type": "add_to_cart"
+          }
+        }
+      }
+    ]
+  }
+}

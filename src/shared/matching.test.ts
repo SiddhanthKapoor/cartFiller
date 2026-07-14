@@ -108,6 +108,33 @@ describe('chooseBest', () => {
     expect(best?.cardIndex).toBe(1)
   })
 
+  it('avoids chutney/puree for fresh tomato and powder for fresh coriander', () => {
+    const tomato = chooseBest(ing({ name: 'Tomato', quantity: 3, unit: 'piece' }), 'tomato', [
+      product('iD Tomato Chutney', '260 g', 90, 0),
+      product('Kissan Fresh Tomato Puree', '200 g', 45, 1),
+      product('Fresh Tomato', '500 g', 32, 2),
+    ])
+    expect(tomato?.cardIndex).toBe(2)
+
+    const coriander = chooseBest(
+      ing({ name: 'Coriander', quantity: 1, unit: 'bunch' }),
+      'coriander leaves',
+      [
+        product('Catch Coriander Powder', '100 g', 60, 0),
+        product('Fresh Coriander Leaves', '100 g', 15, 1),
+      ],
+    )
+    expect(coriander?.cardIndex).toBe(1)
+
+    // but a spice whose query *is* the powder must still match the powder
+    const spice = chooseBest(
+      ing({ name: 'Turmeric Powder', quantity: 20, unit: 'g' }),
+      'turmeric powder',
+      [product('Everest Turmeric Powder', '100 g', 40, 0)],
+    )
+    expect(spice?.cardIndex).toBe(0)
+  })
+
   it('returns null when nothing plausibly matches', () => {
     const best = chooseBest(ing({ name: 'Saffron' }), 'saffron', [
       product('Sunflower Oil', '1 L', 150, 0),
