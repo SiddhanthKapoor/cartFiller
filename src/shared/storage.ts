@@ -1,5 +1,6 @@
-import type { FillJob, SavedMeal, Settings, ShoppingList } from './types'
+import type { AiSettings, FillJob, SavedMeal, Settings, ShoppingList } from './types'
 import { DEFAULT_SETTINGS } from './types'
+import { AI_PROVIDERS, defaultModelFor, type AiProviderKey } from './aiProviders'
 
 const KEYS = {
   settings: 'cookcart.settings',
@@ -11,13 +12,50 @@ const MAX_MEALS = 30
 
 // ---------- settings ----------
 
+/** Shape used before per-provider keys existed (v1). */
+interface LegacyAiSettings {
+  apiKey: string
+  baseUrl: string
+  model: string
+}
+
+function migrateAi(stored: unknown): AiSettings {
+  if (!stored || typeof stored !== 'object') return DEFAULT_SETTINGS.ai
+
+  // v1 -> v2: single apiKey + baseUrl becomes provider + per-provider keys
+  if ('apiKey' in stored) {
+    const legacy = stored as LegacyAiSettings
+    const provider: AiProviderKey = legacy.baseUrl?.includes('googleapis')
+      ? 'gemini'
+      : legacy.baseUrl?.includes('groq')
+        ? 'groq'
+        : legacy.baseUrl?.includes('openrouter')
+          ? 'openrouter'
+          : 'openai'
+    return {
+      provider,
+      model: AI_PROVIDERS[provider].models.includes(legacy.model)
+        ? legacy.model
+        : defaultModelFor(provider),
+      keys: legacy.apiKey ? { [provider]: legacy.apiKey } : {},
+    }
+  }
+
+  const ai = { ...DEFAULT_SETTINGS.ai, ...(stored as Partial<AiSettings>) }
+  if (!AI_PROVIDERS[ai.provider]) ai.provider = DEFAULT_SETTINGS.ai.provider
+  if (!AI_PROVIDERS[ai.provider].models.includes(ai.model)) {
+    ai.model = defaultModelFor(ai.provider)
+  }
+  return ai
+}
+
 export async function getSettings(): Promise<Settings> {
   const raw = await chrome.storage.local.get(KEYS.settings)
   const stored = raw[KEYS.settings] as Partial<Settings> | undefined
   return {
     ...DEFAULT_SETTINGS,
     ...stored,
-    ai: { ...DEFAULT_SETTINGS.ai, ...stored?.ai },
+    ai: migrateAi(stored?.ai),
   }
 }
 

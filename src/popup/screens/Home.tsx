@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useMutation } from '@tanstack/react-query'
 import type { SavedMeal, Settings, ShoppingList } from '@/shared/types'
+import { activeApiKey } from '@/shared/types'
 import { generateShoppingList, AiError } from '@/ai/client'
 import { Screen, IconButton } from '../components/ui'
 import {
@@ -39,7 +40,7 @@ export function HomeScreen({
   onDeleteMeal: (id: string) => void
 }) {
   const [query, setQuery] = useState('')
-  const hasKey = settings.ai.apiKey.trim().length > 0
+  const hasKey = activeApiKey(settings.ai).length > 0
 
   const generate = useMutation({
     mutationFn: (q: string) => {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Settings } from '@/shared/types'
-import { AI_PRESETS } from '@/shared/types'
+import { AI_PROVIDER_LIST, AI_PROVIDERS, defaultModelFor } from '@/shared/aiProviders'
 import { Field, IconButton, PrimaryButton, Screen, inputClass } from '../components/ui'
 import { ChevronLeftIcon } from '../components/icons'
 
@@ -17,14 +17,33 @@ export function SettingsScreen({
   const [saved, setSaved] = useState(false)
   const [showKey, setShowKey] = useState(false)
 
+  const provider = AI_PROVIDERS[draft.ai.provider]
+  const currentKey = draft.ai.keys[draft.ai.provider] ?? ''
+
+  const selectProvider = (key: typeof draft.ai.provider) => {
+    setDraft({
+      ...draft,
+      ai: { ...draft.ai, provider: key, model: defaultModelFor(key) },
+    })
+    setShowKey(false)
+  }
+
+  const setKey = (value: string) => {
+    setDraft({
+      ...draft,
+      ai: { ...draft.ai, keys: { ...draft.ai.keys, [draft.ai.provider]: value } },
+    })
+  }
+
   const save = () => {
+    const keys = Object.fromEntries(
+      Object.entries(draft.ai.keys)
+        .map(([k, v]) => [k, v?.trim() ?? ''])
+        .filter(([, v]) => v !== ''),
+    )
     onSave({
       ...draft,
-      ai: {
-        apiKey: draft.ai.apiKey.trim(),
-        baseUrl: draft.ai.baseUrl.trim().replace(/\/+$/, '') || settings.ai.baseUrl,
-        model: draft.ai.model.trim() || settings.ai.model,
-      },
+      ai: { ...draft.ai, keys },
       budgetInr: draft.budgetInr && draft.budgetInr > 0 ? draft.budgetInr : null,
     })
     setSaved(true)
@@ -41,49 +60,59 @@ export function SettingsScreen({
       </div>
 
       <div className="flex-1 space-y-5 overflow-y-auto px-5 py-3">
+        {/* provider */}
         <div>
           <span className="mb-1.5 block text-[11px] font-medium tracking-wide text-mist uppercase">
             Provider
           </span>
           <div className="flex flex-wrap gap-1.5">
-            {AI_PRESETS.map((preset) => {
-              const active = draft.ai.baseUrl === preset.baseUrl
+            {AI_PROVIDER_LIST.map((p) => {
+              const active = draft.ai.provider === p.key
+              const hasKey = (draft.ai.keys[p.key] ?? '').trim() !== ''
               return (
                 <button
-                  key={preset.label}
-                  onClick={() =>
-                    setDraft({
-                      ...draft,
-                      ai: { ...draft.ai, baseUrl: preset.baseUrl, model: preset.model },
-                    })
-                  }
-                  className={`rounded-full border px-3 py-1.5 text-[11.5px] transition-colors ${
+                  key={p.key}
+                  onClick={() => selectProvider(p.key)}
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11.5px] transition-colors ${
                     active
                       ? 'border-accent/60 bg-accent-dim text-accent'
                       : 'border-line bg-surface text-white/70 hover:border-line-strong hover:text-white'
                   }`}
                 >
-                  {preset.label}
+                  {p.label}
+                  {hasKey && <span className="h-1 w-1 rounded-full bg-accent" />}
                 </button>
               )
             })}
           </div>
-          <span className="mt-1.5 block text-[11px] leading-relaxed text-mist-dim">
-            {AI_PRESETS.find((p) => p.baseUrl === draft.ai.baseUrl)?.keyHint ??
-              'Custom OpenAI-compatible endpoint'}
-          </span>
         </div>
 
+        {/* model */}
+        <Field label="Model">
+          <select
+            value={draft.ai.model}
+            onChange={(e) => setDraft({ ...draft, ai: { ...draft.ai, model: e.target.value } })}
+            className={`${inputClass} appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2212%22%20height=%2212%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23888%22%20stroke-width=%222%22%3E%3Cpath%20d=%22M6%209l6%206%206-6%22/%3E%3C/svg%3E')] bg-[position:right_12px_center] bg-no-repeat pr-8`}
+          >
+            {provider.models.map((model) => (
+              <option key={model} value={model}>
+                {model}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        {/* per-provider key */}
         <Field
-          label="API key"
-          hint="Any OpenAI-compatible key works (Gemini, OpenAI, Groq, OpenRouter). Stored only in this browser's extension storage — never sent anywhere except your chosen provider."
+          label={`${provider.label} API key`}
+          hint={`${provider.keyHint}. Each provider keeps its own key, stored only in this browser's extension storage and sent nowhere except ${provider.label}.`}
         >
           <div className="relative">
             <input
               type={showKey ? 'text' : 'password'}
-              value={draft.ai.apiKey}
-              onChange={(e) => setDraft({ ...draft, ai: { ...draft.ai, apiKey: e.target.value } })}
-              placeholder="AIza… / sk-…"
+              value={currentKey}
+              onChange={(e) => setKey(e.target.value)}
+              placeholder={provider.keyPlaceholder}
               className={`${inputClass} pr-16`}
             />
             <button
@@ -95,36 +124,31 @@ export function SettingsScreen({
           </div>
         </Field>
 
-        <Field label="Base URL" hint="e.g. https://api.groq.com/openai/v1 or https://openrouter.ai/api/v1">
+        {/* budget */}
+        <div>
+          <div className="mb-1.5 flex items-baseline justify-between">
+            <span className="text-[11px] font-medium tracking-wide text-mist uppercase">
+              Default budget
+            </span>
+            <span className="text-[13px] font-semibold text-white tabular-nums">
+              {draft.budgetInr ? `₹${draft.budgetInr}` : 'Off'}
+            </span>
+          </div>
           <input
-            value={draft.ai.baseUrl}
-            onChange={(e) => setDraft({ ...draft, ai: { ...draft.ai, baseUrl: e.target.value } })}
-            placeholder="https://api.openai.com/v1"
-            className={inputClass}
-          />
-        </Field>
-
-        <Field label="Model">
-          <input
-            value={draft.ai.model}
-            onChange={(e) => setDraft({ ...draft, ai: { ...draft.ai, model: e.target.value } })}
-            placeholder="gpt-4o-mini"
-            className={inputClass}
-          />
-        </Field>
-
-        <Field label="Default budget (₹)" hint="Applied to every dish unless you specify one in the request. Leave empty for none.">
-          <input
-            type="number"
+            type="range"
             min={0}
-            value={draft.budgetInr ?? ''}
+            max={3000}
+            step={100}
+            value={draft.budgetInr ?? 0}
             onChange={(e) =>
-              setDraft({ ...draft, budgetInr: e.target.value ? Number(e.target.value) : null })
+              setDraft({ ...draft, budgetInr: Number(e.target.value) || null })
             }
-            placeholder="No budget"
-            className={inputClass}
+            className="w-full accent-accent"
           />
-        </Field>
+          <span className="mt-1 block text-[11px] leading-relaxed text-mist-dim">
+            Applied to every dish unless the request names its own budget. Slide to ₹0 to turn off.
+          </span>
+        </div>
       </div>
 
       <div className="border-t border-line px-5 pt-3 pb-4">

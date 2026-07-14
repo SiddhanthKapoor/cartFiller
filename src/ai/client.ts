@@ -1,6 +1,8 @@
 import type { AiSettings, Ingredient, ShoppingList } from '@/shared/types'
+import { activeApiKey } from '@/shared/types'
+import { AI_PROVIDERS } from '@/shared/aiProviders'
 import { normalizeIngredient } from '@/shared/normalize'
-import { UNIT_INFO } from '@/shared/units'
+import { toBase, UNIT_INFO } from '@/shared/units'
 import { aiResponseSchema, type AiResponse } from './schema'
 import { SYSTEM_PROMPT, buildUserPrompt } from './prompt'
 
@@ -22,11 +24,13 @@ interface ChatCompletionResponse {
 }
 
 async function chatCompletion(
-  settings: AiSettings,
+  baseUrl: string,
+  apiKey: string,
+  model: string,
   userPrompt: string,
   useJsonMode: boolean,
 ): Promise<string> {
-  const url = `${settings.baseUrl.replace(/\/+$/, '')}/chat/completions`
+  const url = `${baseUrl.replace(/\/+$/, '')}/chat/completions`
 
   let response: Response
   try {
@@ -34,10 +38,10 @@ async function chatCompletion(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${settings.apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: settings.model,
+        model,
         temperature: 0.3,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
@@ -47,7 +51,7 @@ async function chatCompletion(
       }),
     })
   } catch {
-    throw new AiError('network', 'Could not reach the AI provider. Check your connection and base URL.')
+    throw new AiError('network', 'Could not reach the AI provider. Check your connection.')
   }
 
   if (response.status === 401 || response.status === 403) {
@@ -57,7 +61,7 @@ async function chatCompletion(
   if (!response.ok) {
     // Some OpenAI-compatible providers reject response_format — retry once without it.
     if (useJsonMode && response.status === 400) {
-      return chatCompletion(settings, userPrompt, false)
+      return chatCompletion(baseUrl, apiKey, model, userPrompt, false)
     }
     const body = (await response.json().catch(() => null)) as ChatCompletionResponse | null
     throw new AiError('http', body?.error?.message ?? `AI request failed (${response.status}).`)
@@ -65,6 +69,51 @@ async function chatCompletion(
 
   const body = (await response.json()) as ChatCompletionResponse
   const content = body.choices?.[0]?.message?.content
+  if (!content) throw new AiError('parse', 'The AI returned an empty response.')
+  return content
+}
+
+interface AnthropicResponse {
+  content?: Array<{ type: string; text?: string }>
+  error?: { message?: string }
+}
+
+async function anthropicCompletion(
+  baseUrl: string,
+  apiKey: string,
+  model: string,
+  userPrompt: string,
+): Promise<string> {
+  let response: Response
+  try {
+    response = await fetch(`${baseUrl.replace(/\/+$/, '')}/v1/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 4096,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userPrompt }],
+      }),
+    })
+  } catch {
+    throw new AiError('network', 'Could not reach Anthropic. Check your connection.')
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    throw new AiError('auth', 'The API key was rejected. Check it in Settings.')
+  }
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as AnthropicResponse | null
+    throw new AiError('http', body?.error?.message ?? `AI request failed (${response.status}).`)
+  }
+
+  const body = (await response.json()) as AnthropicResponse
+  const content = body.content?.find((block) => block.type === 'text')?.text
   if (!content) throw new AiError('parse', 'The AI returned an empty response.')
   return content
 }
@@ -79,6 +128,29 @@ export function extractJson(raw: string): unknown {
     return JSON.parse(unfenced.slice(start, end + 1))
   } catch {
     throw new AiError('parse', 'The AI returned malformed JSON.')
+  }
+}
+
+/**
+ * Backstop against the classic LLM failure of confusing what a recipe
+ * consumes with what a store sells ("1 kg salt"). Seasonings and staples
+ * carry a per-serving ceiling in the dictionary; anything above it is
+ * clamped down to the ceiling.
+ */
+function clampToRecipeScale(ingredient: Ingredient, servings: number): Ingredient {
+  const { maxPerServingBase } = normalizeIngredient(ingredient.name)
+  if (!maxPerServingBase) return ingredient
+
+  const base = toBase(ingredient.quantity, ingredient.unit)
+  if (base.dimension === 'count') return ingredient
+
+  const cap = maxPerServingBase * Math.max(1, servings)
+  if (base.value <= cap) return ingredient
+
+  return {
+    ...ingredient,
+    quantity: Math.round(cap * 10) / 10,
+    unit: base.dimension === 'volume' ? 'ml' : 'g',
   }
 }
 
@@ -130,7 +202,9 @@ export function toShoppingList(response: AiResponse): ShoppingList {
     dish: response.dish,
     servings: response.servings,
     cuisine: response.cuisine,
-    ingredients: [...merged.values()],
+    ingredients: [...merged.values()].map((ing) =>
+      clampToRecipeScale(ing, response.servings),
+    ),
     estimatedCostInr: Math.round(response.estimatedCostInr ?? 0),
     nutrition: response.nutrition,
     createdAt: Date.now(),
@@ -142,11 +216,17 @@ export async function generateShoppingList(
   query: string,
   settings: AiSettings,
 ): Promise<ShoppingList> {
-  if (!settings.apiKey.trim()) {
+  const apiKey = activeApiKey(settings)
+  if (!apiKey) {
     throw new AiError('no-key', 'Add your API key in Settings to generate lists.')
   }
 
-  const content = await chatCompletion(settings, buildUserPrompt(query), true)
+  const provider = AI_PROVIDERS[settings.provider]
+  const userPrompt = buildUserPrompt(query)
+  const content =
+    provider.kind === 'anthropic'
+      ? await anthropicCompletion(provider.baseUrl, apiKey, settings.model, userPrompt)
+      : await chatCompletion(provider.baseUrl, apiKey, settings.model, userPrompt, true)
   const json = extractJson(content)
 
   const parsed = aiResponseSchema.safeParse(json)

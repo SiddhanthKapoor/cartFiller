@@ -23,16 +23,17 @@ Then in Chrome: `chrome://extensions` → enable **Developer mode** → **Load u
 
 ### Connect an AI provider
 
-Open the popup → gear icon → pick a provider preset and paste its API key. Any OpenAI-compatible endpoint works:
+Open the popup → gear icon → pick a provider, pick a model from the dropdown, paste that provider's API key. Endpoints are handled internally; each provider keeps its own key.
 
-| Provider   | Base URL                                                  | Example model      |
-| ---------- | --------------------------------------------------------- | ------------------ |
-| **Gemini** (default, free tier) | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-2.5-flash` |
-| OpenAI     | `https://api.openai.com/v1`                               | `gpt-4o-mini`      |
-| Groq       | `https://api.groq.com/openai/v1`                          | `llama-3.3-70b-versatile` |
-| OpenRouter | `https://openrouter.ai/api/v1`                            | anything it hosts  |
+| Provider   | Default model             | Get a key at                        |
+| ---------- | ------------------------- | ----------------------------------- |
+| **Gemini** (default) | `gemini-2.5-flash`   | aistudio.google.com/apikey (free tier) |
+| Claude     | `claude-sonnet-5`         | console.anthropic.com               |
+| OpenAI     | `gpt-4o-mini`             | platform.openai.com                 |
+| Groq       | `llama-3.3-70b-versatile` | console.groq.com (free tier)        |
+| OpenRouter | `google/gemini-2.5-flash` | openrouter.ai                       |
 
-Gemini is the default: grab a free key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey), paste it, done. Google's OpenAI-compatibility layer means the same client code drives all four.
+Gemini, OpenAI, Groq and OpenRouter share one OpenAI-compatible client; Claude speaks the Anthropic Messages API natively.
 
 The key lives in `chrome.storage.local` on your machine and is only ever sent to the provider you configured.
 
@@ -55,7 +56,10 @@ Design decisions worth knowing:
 
 - **Storage-backed jobs.** The active fill job lives in `chrome.storage`, not in service-worker memory. MV3 workers get killed at will; a restart mid-fill loses nothing because every page load re-announces itself and the job resumes from state.
 - **Selectors are quarantined.** All site-specific DOM knowledge lives in `content/providers/`. Each adapter tries known selectors first, then falls back to generic heuristics that anchor on the two things every listing card must have: an *Add* control and a ₹ price. A store redesign degrades gracefully instead of breaking.
-- **Matching is a pure module.** Pack parsing (`2 x 500 ml`, `1 pc (450-550 g)`), bigram fuzzy name scoring with processed-food penalties (searching *tomato* must not buy ketchup), unit/weight conversion and pack optimization (`need 750 g, packs of 500 g → add 2`) are all pure functions with unit tests — no DOM required.
+- **Matching is a pure module.** Pack parsing (`2 x 500 ml`, `1 pc (450-550 g)`), bigram fuzzy name scoring with processed-food penalties (searching *tomato* must not buy ketchup; *paneer* must not buy shahi paneer masala), unit/weight conversion and pack optimization (`need 750 g, packs of 500 g → add 2`) are all pure functions with unit tests — no DOM required.
+- **Ranking shops like a person.** `score = 0.56·relevance + 0.26·pack-fit + 0.10·value-for-money (₹ per 100 g, not sticker price) + 0.08·trusted-brand`. Quick-commerce listing pages expose no ratings or review counts in the DOM, so a curated brand prior (Amul, Tata, Everest, Fortune, …) stands in as the quality signal.
+- **Recipe quantity ≠ purchase quantity.** The AI is instructed to output what the recipe *consumes* (1 tsp salt, 3 tbsp oil), and a dictionary of per-serving ceilings clamps anything absurd ("1 kg salt") as a backstop. The store pack is chosen separately by the matcher.
+- **Nothing goes missing silently.** After the first pass, every skipped or failed ingredient gets exactly one retry with a simplified search query; the final summary shows exactly what was added, substituted or skipped, with product names and prices.
 - **Normalization layer.** `Fresh Tomatoes`, `Tomato`, `Red Tomatoes` all collapse to one canonical ingredient with a store-friendly search query, via a dictionary tuned for Indian quick-commerce (Hindi aliases included). Duplicates in AI output are merged by summing quantities.
 - **AI output is untrusted.** Responses are fence-stripped, parsed, unit-coerced and validated with a strict Zod schema before anything touches the UI.
 

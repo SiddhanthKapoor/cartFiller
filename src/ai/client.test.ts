@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { toBase } from '@/shared/units'
 import { extractJson, toShoppingList } from './client'
 import { aiResponseSchema } from './schema'
 
@@ -57,6 +58,45 @@ describe('toShoppingList', () => {
     const tomato = list.ingredients.find((i) => i.name === 'Tomato')
     expect(list.ingredients).toHaveLength(2)
     expect(tomato?.quantity).toBe(500)
+  })
+
+  it('clamps pack-sized staple quantities down to recipe scale', () => {
+    const list = toShoppingList(
+      aiResponseSchema.parse({
+        dish: 'Paneer Butter Masala',
+        servings: 4,
+        ingredients: [
+          { name: 'Salt', quantity: 1, unit: 'kg' },
+          { name: 'Cooking Oil', quantity: 500, unit: 'ml' },
+          { name: 'Turmeric Powder', quantity: 50, unit: 'g' },
+          { name: 'Sugar', quantity: 500, unit: 'g' },
+          { name: 'Paneer', quantity: 400, unit: 'g' },
+        ],
+      }),
+    )
+    const grams = (n: string) => {
+      const i = list.ingredients.find((x) => x.name === n)!
+      return toBase(i.quantity, i.unit).value
+    }
+    expect(grams('Salt')).toBeLessThanOrEqual(12) // 3 g/serving cap x 4
+    expect(grams('Cooking Oil')).toBeLessThanOrEqual(80)
+    expect(grams('Turmeric Powder')).toBeLessThanOrEqual(8)
+    expect(grams('Sugar')).toBeLessThanOrEqual(40)
+    // real purchases are untouched
+    expect(grams('Paneer')).toBe(400)
+  })
+
+  it('leaves sane seasoning quantities alone', () => {
+    const list = toShoppingList(
+      aiResponseSchema.parse({
+        dish: 'Dal',
+        servings: 4,
+        ingredients: [{ name: 'Salt', quantity: 1.5, unit: 'tsp' }],
+      }),
+    )
+    const salt = list.ingredients[0]
+    expect(salt.quantity).toBe(1.5)
+    expect(salt.unit).toBe('tsp')
   })
 
   it('tags pantry staples from the dictionary', () => {
