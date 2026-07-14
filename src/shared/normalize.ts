@@ -9,6 +9,12 @@ export interface NormalizedIngredient {
   /** average weight of one piece in grams, for piece <-> mass conversion */
   pieceWeightG?: number
   pantryStaple: boolean
+  /**
+   * Sanity ceiling for seasonings/staples, in g or ml per serving.
+   * A recipe never *consumes* more than this — anything above is the AI
+   * confusing recipe quantity with retail pack size, and gets clamped.
+   */
+  maxPerServingBase?: number
 }
 
 interface CanonicalEntry extends Omit<NormalizedIngredient, 'canonical'> {
@@ -121,6 +127,8 @@ const C = (
     search?: string
     pieceWeightG?: number
     pantry?: boolean
+    /** max g/ml a recipe plausibly consumes per serving */
+    maxPerServing?: number
   } = {},
 ): CanonicalEntry => ({
   canonical,
@@ -129,6 +137,7 @@ const C = (
   searchQuery: opts.search ?? canonical,
   pieceWeightG: opts.pieceWeightG,
   pantryStaple: opts.pantry ?? false,
+  maxPerServingBase: opts.maxPerServing,
 })
 
 /**
@@ -142,7 +151,7 @@ const CANONICAL: CanonicalEntry[] = [
   C('potato', 'produce', { pieceWeightG: 150 }),
   C('garlic', 'produce', { aliases: ['garlic cloves', 'garlic clove', 'garlic paste'], pieceWeightG: 40 }),
   C('ginger', 'produce', { aliases: ['ginger root', 'ginger paste'], pieceWeightG: 50 }),
-  C('ginger garlic paste', 'condiments', { aliases: ['ginger-garlic paste'] }),
+  C('ginger garlic paste', 'condiments', { aliases: ['ginger-garlic paste'], maxPerServing: 15 }),
   C('green chilli', 'produce', {
     aliases: ['green chili', 'green chillies', 'green chilies', 'hari mirch'],
     pieceWeightG: 8,
@@ -172,8 +181,8 @@ const CANONICAL: CanonicalEntry[] = [
 
   // --- dairy & eggs ---
   C('milk', 'dairy', { aliases: ['full cream milk', 'whole milk', 'toned milk'], search: 'full cream milk' }),
-  C('butter', 'dairy', { aliases: ['unsalted butter', 'salted butter'] }),
-  C('ghee', 'dairy', { aliases: ['clarified butter', 'desi ghee'] }),
+  C('butter', 'dairy', { aliases: ['unsalted butter', 'salted butter'], maxPerServing: 25 }),
+  C('ghee', 'dairy', { aliases: ['clarified butter', 'desi ghee'], maxPerServing: 15 }),
   C('paneer', 'dairy', { aliases: ['cottage cheese', 'indian cottage cheese'] }),
   C('curd', 'dairy', { aliases: ['yogurt', 'yoghurt', 'dahi', 'plain yogurt', 'greek yogurt'] }),
   C('fresh cream', 'dairy', { aliases: ['cream', 'heavy cream', 'cooking cream', 'whipping cream'] }),
@@ -223,65 +232,67 @@ const CANONICAL: CanonicalEntry[] = [
     aliases: ['oil', 'vegetable oil', 'sunflower oil', 'refined oil'],
     search: 'sunflower oil',
     pantry: true,
+    maxPerServing: 20,
   }),
-  C('mustard oil', 'grains-staples', { pantry: true }),
-  C('olive oil', 'grains-staples', { aliases: ['extra virgin olive oil'], pantry: true }),
-  C('sesame oil', 'grains-staples', { aliases: ['til oil', 'gingelly oil'], pantry: true }),
-  C('salt', 'spices', { aliases: ['table salt', 'rock salt', 'sea salt'], pantry: true }),
-  C('sugar', 'spices', { aliases: ['white sugar', 'granulated sugar'], pantry: true }),
-  C('jaggery', 'spices', { aliases: ['gur', 'gud'] }),
-  C('turmeric powder', 'spices', { aliases: ['turmeric', 'haldi', 'haldi powder'], pantry: true }),
+  C('mustard oil', 'grains-staples', { pantry: true, maxPerServing: 20 }),
+  C('olive oil', 'grains-staples', { aliases: ['extra virgin olive oil'], pantry: true, maxPerServing: 20 }),
+  C('sesame oil', 'grains-staples', { aliases: ['til oil', 'gingelly oil'], pantry: true, maxPerServing: 10 }),
+  C('salt', 'spices', { aliases: ['table salt', 'rock salt', 'sea salt'], pantry: true, maxPerServing: 3 }),
+  C('sugar', 'spices', { aliases: ['white sugar', 'granulated sugar'], pantry: true, maxPerServing: 10 }),
+  C('jaggery', 'spices', { aliases: ['gur', 'gud'], maxPerServing: 20 }),
+  C('turmeric powder', 'spices', { aliases: ['turmeric', 'haldi', 'haldi powder'], pantry: true, maxPerServing: 2 }),
   C('red chilli powder', 'spices', {
     aliases: ['red chili powder', 'chilli powder', 'chili powder', 'lal mirch', 'kashmiri red chilli powder', 'cayenne'],
     pantry: true,
+    maxPerServing: 3,
   }),
-  C('coriander powder', 'spices', { aliases: ['dhania powder', 'ground coriander'], pantry: true }),
-  C('cumin seeds', 'spices', { aliases: ['jeera', 'cumin', 'whole cumin'], pantry: true }),
-  C('cumin powder', 'spices', { aliases: ['jeera powder', 'ground cumin', 'roasted cumin powder'], pantry: true }),
-  C('garam masala', 'spices', { pantry: true }),
-  C('biryani masala', 'spices', {}),
-  C('chaat masala', 'spices', {}),
-  C('pav bhaji masala', 'spices', {}),
-  C('sambar powder', 'spices', { aliases: ['sambar masala'] }),
-  C('mustard seeds', 'spices', { aliases: ['rai', 'sarson seeds'], pantry: true }),
-  C('black pepper', 'spices', { aliases: ['pepper', 'black pepper powder', 'peppercorns', 'kali mirch'], pantry: true }),
-  C('cardamom', 'spices', { aliases: ['green cardamom', 'elaichi', 'cardamom pods'] }),
-  C('black cardamom', 'spices', { aliases: ['badi elaichi'] }),
-  C('cloves', 'spices', { aliases: ['clove', 'laung'] }),
-  C('cinnamon', 'spices', { aliases: ['cinnamon stick', 'dalchini'] }),
-  C('bay leaves', 'spices', { aliases: ['bay leaf', 'tej patta'] }),
-  C('star anise', 'spices', {}),
-  C('saffron', 'spices', { aliases: ['kesar', 'saffron strands'] }),
-  C('kasuri methi', 'spices', { aliases: ['dried fenugreek leaves', 'kasoori methi', 'fenugreek leaves'] }),
-  C('fenugreek seeds', 'spices', { aliases: ['methi seeds', 'methi dana'] }),
-  C('fennel seeds', 'spices', { aliases: ['saunf'] }),
-  C('asafoetida', 'spices', { aliases: ['hing'] }),
-  C('dry red chilli', 'spices', { aliases: ['dried red chillies', 'whole red chilli', 'dry red chillies'] }),
-  C('baking soda', 'spices', { aliases: ['sodium bicarbonate'], pantry: true }),
-  C('baking powder', 'spices', { pantry: true }),
-  C('cornflour', 'grains-staples', { aliases: ['corn starch', 'cornstarch', 'corn flour'], pantry: true }),
+  C('coriander powder', 'spices', { aliases: ['dhania powder', 'ground coriander'], pantry: true, maxPerServing: 4 }),
+  C('cumin seeds', 'spices', { aliases: ['jeera', 'cumin', 'whole cumin'], pantry: true, maxPerServing: 3 }),
+  C('cumin powder', 'spices', { aliases: ['jeera powder', 'ground cumin', 'roasted cumin powder'], pantry: true, maxPerServing: 3 }),
+  C('garam masala', 'spices', { pantry: true, maxPerServing: 3 }),
+  C('biryani masala', 'spices', { maxPerServing: 8 }),
+  C('chaat masala', 'spices', { maxPerServing: 3 }),
+  C('pav bhaji masala', 'spices', { maxPerServing: 8 }),
+  C('sambar powder', 'spices', { aliases: ['sambar masala'], maxPerServing: 8 }),
+  C('mustard seeds', 'spices', { aliases: ['rai', 'sarson seeds'], pantry: true, maxPerServing: 2 }),
+  C('black pepper', 'spices', { aliases: ['pepper', 'black pepper powder', 'peppercorns', 'kali mirch'], pantry: true, maxPerServing: 2 }),
+  C('cardamom', 'spices', { aliases: ['green cardamom', 'elaichi', 'cardamom pods'], maxPerServing: 2 }),
+  C('black cardamom', 'spices', { aliases: ['badi elaichi'], maxPerServing: 2 }),
+  C('cloves', 'spices', { aliases: ['clove', 'laung'], maxPerServing: 1 }),
+  C('cinnamon', 'spices', { aliases: ['cinnamon stick', 'dalchini'], maxPerServing: 2 }),
+  C('bay leaves', 'spices', { aliases: ['bay leaf', 'tej patta'], maxPerServing: 1 }),
+  C('star anise', 'spices', { maxPerServing: 1 }),
+  C('saffron', 'spices', { aliases: ['kesar', 'saffron strands'], maxPerServing: 0.2 }),
+  C('kasuri methi', 'spices', { aliases: ['dried fenugreek leaves', 'kasoori methi', 'fenugreek leaves'], maxPerServing: 2 }),
+  C('fenugreek seeds', 'spices', { aliases: ['methi seeds', 'methi dana'], maxPerServing: 2 }),
+  C('fennel seeds', 'spices', { aliases: ['saunf'], maxPerServing: 2 }),
+  C('asafoetida', 'spices', { aliases: ['hing'], maxPerServing: 0.5 }),
+  C('dry red chilli', 'spices', { aliases: ['dried red chillies', 'whole red chilli', 'dry red chillies'], maxPerServing: 3 }),
+  C('baking soda', 'spices', { aliases: ['sodium bicarbonate'], pantry: true, maxPerServing: 2 }),
+  C('baking powder', 'spices', { pantry: true, maxPerServing: 3 }),
+  C('cornflour', 'grains-staples', { aliases: ['corn starch', 'cornstarch', 'corn flour'], pantry: true, maxPerServing: 10 }),
 
   // --- condiments & packaged ---
-  C('soy sauce', 'condiments', { aliases: ['soya sauce', 'dark soy sauce', 'light soy sauce'] }),
-  C('vinegar', 'condiments', { aliases: ['white vinegar', 'rice vinegar'] }),
+  C('soy sauce', 'condiments', { aliases: ['soya sauce', 'dark soy sauce', 'light soy sauce'], maxPerServing: 15 }),
+  C('vinegar', 'condiments', { aliases: ['white vinegar', 'rice vinegar'], maxPerServing: 10 }),
   C('tomato ketchup', 'condiments', { aliases: ['ketchup'] }),
   C('tomato puree', 'condiments', { aliases: ['tomato paste'] }),
   C('green chilli sauce', 'condiments', { aliases: ['chilli sauce', 'chili sauce'] }),
   C('schezwan sauce', 'condiments', { aliases: ['schezwan chutney', 'szechuan sauce'] }),
   C('mayonnaise', 'condiments', { aliases: ['mayo', 'veg mayonnaise'] }),
-  C('honey', 'condiments', {}),
+  C('honey', 'condiments', { maxPerServing: 15 }),
   C('peanut butter', 'condiments', {}),
   C('coconut milk', 'packaged', { aliases: ['thick coconut milk'] }),
   C('coconut', 'produce', { aliases: ['fresh coconut', 'grated coconut'], pieceWeightG: 400 }),
   C('desiccated coconut', 'packaged', { aliases: ['dry coconut', 'coconut powder'] }),
-  C('tamarind', 'condiments', { aliases: ['imli', 'tamarind paste', 'tamarind pulp'] }),
+  C('tamarind', 'condiments', { aliases: ['imli', 'tamarind paste', 'tamarind pulp'], maxPerServing: 10 }),
   C('tofu', 'packaged', {}),
   C('cashews', 'packaged', { aliases: ['cashew', 'cashew nuts', 'kaju'] }),
   C('almonds', 'packaged', { aliases: ['almond', 'badam'] }),
   C('raisins', 'packaged', { aliases: ['kishmish', 'golden raisins'] }),
   C('peanuts', 'packaged', { aliases: ['groundnut', 'groundnuts', 'raw peanuts'] }),
   C('fried onions', 'packaged', { aliases: ['birista', 'crispy fried onions'] }),
-  C('rose water', 'packaged', { aliases: ['gulab jal'] }),
+  C('rose water', 'packaged', { aliases: ['gulab jal'], maxPerServing: 5 }),
   C('paneer tikka masala paste', 'condiments', { aliases: ['tikka paste', 'tandoori paste'] }),
   C('momo wrapper', 'packaged', { aliases: ['dumpling wrappers', 'wonton wrappers', 'momo sheets'], search: 'momo sheets' }),
   C('sushi rice', 'grains-staples', { aliases: ['japanese rice', 'sticky rice'] }),
@@ -336,6 +347,7 @@ function toNormalized(entry: CanonicalEntry): NormalizedIngredient {
     category: entry.category,
     pieceWeightG: entry.pieceWeightG,
     pantryStaple: entry.pantryStaple,
+    maxPerServingBase: entry.maxPerServingBase,
   }
 }
 

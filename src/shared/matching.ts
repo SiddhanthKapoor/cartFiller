@@ -125,6 +125,8 @@ const PROCESSED_TOKENS = new Set([
   'flavour',
   'flavored',
   'flavoured',
+  'vanilla',
+  'chocolate',
   'instant',
   'ready',
   'mix',
@@ -137,7 +139,70 @@ const PROCESSED_TOKENS = new Set([
   'seasoning',
   'namkeen',
   'wafers',
+  // "paneer" must not buy "shahi paneer masala"; "butter" must not buy
+  // "plant-based butter spread"; "fresh cream" must not buy "whipping cream"
+  'masala',
+  'spread',
+  'whipping',
+  'whipped',
+  'plant',
+  'vegan',
+  'roasted',
+  'salted',
+  'fried',
+  'paste',
 ])
+
+/**
+ * Brands with wide trust in Indian grocery. On quick-commerce listing pages
+ * there are no ratings or review counts in the DOM, so a curated brand
+ * prior is the strongest quality signal available.
+ */
+const TRUSTED_BRANDS = new Set([
+  'amul',
+  'mother',       // Mother Dairy
+  'nandini',
+  'gowardhan',
+  'milky',        // Milky Mist
+  'britannia',
+  'nestle',
+  'tata',
+  'fortune',
+  'aashirvaad',
+  'saffola',
+  'everest',
+  'mdh',
+  'catch',
+  'aachi',
+  'eastern',
+  'daawat',
+  'india',        // India Gate
+  'kohinoor',
+  'lal',          // Lal Qilla
+  'twentyfour',   // 24 Mantra
+  'licious',
+  'fresho',
+  'zappfresh',
+  'id',           // iD fresh
+  'haldiram',
+  'haldirams',
+  'bikaji',
+  'dabur',
+  'patanjali',
+  'kissan',
+  'delmonte',
+  'veeba',
+  'funfoods',
+  'urban',        // Urban Platter
+  'happilo',
+  'farmley',
+  'nutraj',
+])
+
+/** 0 or 1: does the product title carry a trusted brand? */
+export function brandScore(productName: string): number {
+  return tokenize(productName).some((t) => TRUSTED_BRANDS.has(t)) ? 1 : 0
+}
 
 const STOPWORDS = new Set(['the', 'and', 'with', 'combo', 'pack', 'of', 'per'])
 
@@ -195,10 +260,10 @@ export function nameSimilarity(query: string, productName: string): number {
   for (const pt of productTokens) {
     if (querySet.has(pt)) continue
     if (PROCESSED_TOKENS.has(pt)) processedPenalty += 0.35
-    else noisePenalty += 0.04
+    else if (!TRUSTED_BRANDS.has(pt)) noisePenalty += 0.05
   }
 
-  return Math.max(0, coverage - processedPenalty - Math.min(noisePenalty, 0.2))
+  return Math.max(0, coverage - processedPenalty - Math.min(noisePenalty, 0.3))
 }
 
 // ---------- pack fit ----------
@@ -268,9 +333,12 @@ export function packFit(need: Need, pack: ParsedPack | null): PackFit {
 
 // ---------- ranking ----------
 
-const NAME_WEIGHT = 0.62
-const PACK_WEIGHT = 0.3
-const PRICE_WEIGHT = 0.08
+// Weighted like a person shops: relevance first, then a sensible pack,
+// then value for money, then a trusted brand as tiebreak.
+const NAME_WEIGHT = 0.56
+const PACK_WEIGHT = 0.26
+const VALUE_WEIGHT = 0.1
+const BRAND_WEIGHT = 0.08
 const MIN_NAME_SCORE = 0.45
 
 /**
@@ -285,10 +353,11 @@ export function rankProducts(
   const { pieceWeightG } = normalizeIngredient(ingredient.name)
   const need = ingredientNeed(ingredient, pieceWeightG)
 
-  const priced = products.filter((p) => p.priceInr !== null && p.priceInr > 0)
-  const cheapest = priced.length > 0 ? Math.min(...priced.map((p) => p.priceInr!)) : null
+  interface Candidate extends Omit<RankedProduct, 'score'> {
+    perUnitPrice: number | null
+  }
 
-  const ranked: RankedProduct[] = []
+  const candidates: Candidate[] = []
   for (const product of products) {
     const nameScore = Math.max(
       nameSimilarity(searchQuery, product.name),
@@ -298,20 +367,41 @@ export function rankProducts(
 
     const pack = parsePack(product.packText) ?? parsePack(product.name)
     const fit = packFit(need, pack)
+    const perUnitPrice =
+      pack && pack.baseValue > 0 && product.priceInr
+        ? product.priceInr / pack.baseValue
+        : null
 
-    // Mild preference for cheaper options among plausible matches.
-    const priceScore =
-      cheapest !== null && product.priceInr ? cheapest / product.priceInr : 0.5
-
-    ranked.push({
+    candidates.push({
       ...product,
       nameScore,
       packScore: fit.score,
       unitsToAdd: fit.unitsToAdd,
       pack,
-      score: NAME_WEIGHT * nameScore + PACK_WEIGHT * fit.score + PRICE_WEIGHT * priceScore,
+      perUnitPrice,
     })
   }
+
+  // Value for money = price per gram/ml relative to the best-value candidate,
+  // not the absolute sticker price (a 50 g spice box "beating" 500 g of rice
+  // on price is meaningless).
+  const perUnitPrices = candidates
+    .map((c) => c.perUnitPrice)
+    .filter((p): p is number => p !== null)
+  const bestPerUnit = perUnitPrices.length > 0 ? Math.min(...perUnitPrices) : null
+
+  const ranked: RankedProduct[] = candidates.map(({ perUnitPrice, ...candidate }) => {
+    const valueScore =
+      bestPerUnit !== null && perUnitPrice !== null ? bestPerUnit / perUnitPrice : 0.5
+    return {
+      ...candidate,
+      score:
+        NAME_WEIGHT * candidate.nameScore +
+        PACK_WEIGHT * candidate.packScore +
+        VALUE_WEIGHT * valueScore +
+        BRAND_WEIGHT * brandScore(candidate.name),
+    }
+  })
 
   return ranked.sort((a, b) => b.score - a.score)
 }

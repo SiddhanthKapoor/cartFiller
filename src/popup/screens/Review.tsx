@@ -220,6 +220,11 @@ export function ReviewScreen({
         </div>
       </div>
 
+      <p className="mx-5 mb-2 text-[11px] leading-relaxed text-mist-dim">
+        Quantities are what the recipe consumes — the smallest store pack that covers each one is
+        picked automatically.
+      </p>
+
       {/* ingredients */}
       <div className="flex-1 overflow-y-auto px-5">
         <AnimatePresence initial={false}>

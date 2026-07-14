@@ -116,10 +116,47 @@ describe('chooseBest', () => {
     expect(best).toBeNull()
   })
 
-  it('prefers cheaper of two equally good matches', () => {
+  it('prefers better value for money between equally good matches', () => {
     const best = chooseBest(ing({ name: 'Curd', quantity: 400, unit: 'g' }), 'curd', [
       product('Nestle Curd', '400 g', 75, 0),
       product('Amul Curd', '400 g', 35, 1),
+    ])
+    expect(best?.cardIndex).toBe(1)
+  })
+
+  it('buys actual paneer, not shahi paneer masala', () => {
+    const best = chooseBest(ing({ name: 'Paneer', quantity: 400, unit: 'g' }), 'paneer', [
+      product('Everest Shahi Paneer Masala', '50 g', 52, 0),
+      product('Amul Malai Paneer', '200 g', 95, 1),
+    ])
+    expect(best?.cardIndex).toBe(1)
+    expect(best?.unitsToAdd).toBe(2)
+  })
+
+  it('buys butter, not plant-based butter spread', () => {
+    const best = chooseBest(ing({ name: 'Butter', quantity: 100, unit: 'g' }), 'butter', [
+      product('Nutralite Activ Plant Based Butter Spread', '100 g', 89, 0),
+      product('Amul Butter', '100 g', 62, 1),
+    ])
+    expect(best?.cardIndex).toBe(1)
+  })
+
+  it('buys fresh cream, not vanilla whipping cream', () => {
+    const best = chooseBest(
+      ing({ name: 'Fresh Cream', quantity: 100, unit: 'ml' }),
+      'fresh cream',
+      [
+        product('Puramate Vanilla Whipping Cream', '100 g', 112, 0),
+        product('Amul Fresh Cream', '250 ml', 85, 1),
+      ],
+    )
+    expect(best?.cardIndex).toBe(1)
+  })
+
+  it('gives trusted brands the edge at equal price and pack', () => {
+    const best = chooseBest(ing({ name: 'Curd', quantity: 400, unit: 'g' }), 'curd', [
+      product('Dailyfit Curd', '400 g', 50, 0),
+      product('Amul Curd', '400 g', 50, 1),
     ])
     expect(best?.cardIndex).toBe(1)
   })
