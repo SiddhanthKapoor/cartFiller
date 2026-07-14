@@ -1,3 +1,5 @@
+import { defaultModelFor, type AiProviderKey } from './aiProviders'
+
 export type Unit =
   | 'g'
   | 'kg'
@@ -102,6 +104,8 @@ export interface JobItem {
   status: ItemStatus
   matched?: MatchedProduct
   error?: string
+  /** set once the item has used its second-chance retry */
+  retried?: boolean
 }
 
 export type JobStatus = 'running' | 'done' | 'cancelled' | 'error'
@@ -122,9 +126,10 @@ export interface FillJob {
 // ---------- Settings ----------
 
 export interface AiSettings {
-  apiKey: string
-  baseUrl: string
+  provider: AiProviderKey
   model: string
+  /** one key per provider — switching providers never leaks a key across */
+  keys: Partial<Record<AiProviderKey, string>>
 }
 
 export interface Settings {
@@ -133,49 +138,19 @@ export interface Settings {
   budgetInr: number | null
 }
 
-export interface AiPreset {
-  label: string
-  baseUrl: string
-  model: string
-  keyHint: string
-}
-
-/** One-tap provider presets — anything OpenAI-compatible works. */
-export const AI_PRESETS: AiPreset[] = [
-  {
-    label: 'Gemini',
-    baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
-    model: 'gemini-2.5-flash',
-    keyHint: 'Free key at aistudio.google.com/apikey',
-  },
-  {
-    label: 'OpenAI',
-    baseUrl: 'https://api.openai.com/v1',
-    model: 'gpt-4o-mini',
-    keyHint: 'Key at platform.openai.com/api-keys',
-  },
-  {
-    label: 'Groq',
-    baseUrl: 'https://api.groq.com/openai/v1',
-    model: 'llama-3.3-70b-versatile',
-    keyHint: 'Free key at console.groq.com/keys',
-  },
-  {
-    label: 'OpenRouter',
-    baseUrl: 'https://openrouter.ai/api/v1',
-    model: 'google/gemini-2.5-flash',
-    keyHint: 'Key at openrouter.ai/keys',
-  },
-]
-
 export const DEFAULT_SETTINGS: Settings = {
   ai: {
-    apiKey: '',
-    baseUrl: AI_PRESETS[0].baseUrl,
-    model: AI_PRESETS[0].model,
+    provider: 'gemini',
+    model: defaultModelFor('gemini'),
+    keys: {},
   },
   skipPantryStaples: false,
   budgetInr: null,
+}
+
+/** The key for the currently selected provider, if any. */
+export function activeApiKey(ai: AiSettings): string {
+  return ai.keys[ai.provider]?.trim() ?? ''
 }
 
 export interface SavedMeal {

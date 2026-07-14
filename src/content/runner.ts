@@ -25,7 +25,7 @@ export async function runItem(command: RunItemCommand): Promise<ItemOutcome> {
   const url = new URL(location.href)
   const query = (currentSearchQuery(url) ?? '').trim().toLowerCase()
   if (!adapter.isSearchPage(url) || query !== item.searchQuery.trim().toLowerCase()) {
-    await pause(300, 700)
+    await pause(150, 350)
     location.href = adapter.searchUrl(item.searchQuery)
     return { kind: 'navigated' }
   }
@@ -37,7 +37,7 @@ export async function runItem(command: RunItemCommand): Promise<ItemOutcome> {
       const scraped = adapter.scrapeCards()
       return scraped.length > 0 ? scraped : null
     },
-    { timeoutMs: 15_000, intervalMs: 400 },
+    { timeoutMs: 12_000, intervalMs: 300 },
   )
 
   if (!cards) {
@@ -74,7 +74,7 @@ export async function runItem(command: RunItemCommand): Promise<ItemOutcome> {
 
   let unitsAdded = 1
   for (let i = 1; i < best.unitsToAdd; i++) {
-    await pause(500, 1000)
+    await pause(300, 600)
     if (await adapter.incrementQuantity(card)) unitsAdded++
     else break
   }

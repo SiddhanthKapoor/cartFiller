@@ -74,14 +74,15 @@ export function createAdapter(id: ProviderId, hints: AdapterHints): ProviderAdap
       // Success = the Add button turned into a stepper (or vanished).
       const confirmed = await waitFor(
         () => findStepper(card.element) !== null || !card.addButton.isConnected,
-        { timeoutMs: 5_000 },
+        { timeoutMs: 3_500, intervalMs: 150 },
       )
       if (confirmed) return true
       // One retry — first click sometimes only opens a variant drawer.
       fireClick(card.addButton)
       return (
         (await waitFor(() => findStepper(card.element) !== null || !card.addButton.isConnected, {
-          timeoutMs: 4_000,
+          timeoutMs: 3_000,
+          intervalMs: 150,
         })) !== null
       )
     },
@@ -91,7 +92,7 @@ export function createAdapter(id: ProviderId, hints: AdapterHints): ProviderAdap
       if (!stepper?.increment) return false
       const before = stepper.quantity
       fireClick(stepper.increment)
-      await pause(500, 900)
+      await pause(300, 550)
       const after = findStepper(card.element)
       // If we cannot read the quantity, trust the click rather than looping.
       return after === null || after.quantity >= before

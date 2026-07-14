@@ -1,7 +1,7 @@
 export const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms))
 
 /** A humanized pause so we do not hammer the page faster than a user could. */
-export const pause = (min = 350, max = 900): Promise<void> =>
+export const pause = (min = 150, max = 400): Promise<void> =>
   sleep(min + Math.random() * (max - min))
 
 export interface WaitOptions {
@@ -24,7 +24,7 @@ export async function waitFor<T>(
 }
 
 /** Wait until the DOM stops mutating for `quietMs` (or timeout). */
-export function waitForQuietDom(quietMs = 700, timeoutMs = 8_000): Promise<void> {
+export function waitForQuietDom(quietMs = 400, timeoutMs = 5_000): Promise<void> {
   return new Promise((resolve) => {
     let timer = setTimeout(finish, quietMs)
     const hardStop = setTimeout(finish, timeoutMs)

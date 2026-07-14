@@ -1,7 +1,7 @@
 import type { ContentCommand, ContentMessage, OverlayState, PopupMessage } from '@/shared/messages'
 import type { FillJob, JobItem, ProviderId, ShoppingList } from '@/shared/types'
 import { PROVIDER_URLS } from '@/shared/providers'
-import { normalizeIngredient } from '@/shared/normalize'
+import { cleanName, normalizeIngredient } from '@/shared/normalize'
 import { getActiveJob, setActiveJob } from '@/shared/storage'
 
 /**
@@ -125,11 +125,38 @@ async function onItemResult(
   return advance(job)
 }
 
-/** Move to the next pending item, or finish the job. */
+/**
+ * A simpler query for the retry round: "chicken curry cut" -> "chicken",
+ * or the cleaned raw name when the dictionary query already failed.
+ */
+function fallbackQuery(item: JobItem): string {
+  const cleaned = cleanName(item.ingredient.name)
+  if (cleaned && cleaned !== item.searchQuery) return cleaned
+  const words = item.searchQuery.split(' ')
+  return words.length > 1 ? words[0] : item.searchQuery
+}
+
+/** Move to the next pending item, retry misses once, or finish the job. */
 async function advance(job: FillJob): Promise<ContentCommand> {
-  const nextIndex = job.items.findIndex(
-    (item, i) => i > job.currentIndex && item.status === 'pending',
-  )
+  let nextIndex = job.items.findIndex((item) => item.status === 'pending')
+
+  if (nextIndex === -1) {
+    // Verification pass: anything skipped/failed gets exactly one more
+    // attempt with a simpler search query before we call the job done.
+    const retryable = job.items.filter(
+      (item) => (item.status === 'skipped' || item.status === 'failed') && !item.retried,
+    )
+    for (const item of retryable) {
+      item.retried = true
+      item.status = 'pending'
+      item.error = undefined
+      item.searchQuery = fallbackQuery(item)
+    }
+    if (retryable.length > 0) {
+      nextIndex = job.items.findIndex((item) => item.status === 'pending')
+    }
+  }
+
   if (nextIndex === -1) {
     job.status = 'done'
     job.lastProgressAt = Date.now()
