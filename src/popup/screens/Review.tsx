@@ -168,9 +168,14 @@ export function ReviewScreen({
   }
 
   const copyList = async () => {
+    // Copy only what would actually be shopped — skip pantry staples the user
+    // said they already have, matching what "Fill cart" would add.
+    const shopped = list.ingredients.filter(
+      (i) => !(settings.skipPantryStaples && i.pantryStaple),
+    )
     const text = [
       `${list.dish} — ${list.servings} servings`,
-      ...list.ingredients.map(
+      ...shopped.map(
         (i) => `• ${i.name}: ${formatQuantity(i.quantity, i.unit)}${i.optional ? ' (optional)' : ''}`,
       ),
     ].join('\n')

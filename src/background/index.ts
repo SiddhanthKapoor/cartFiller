@@ -40,6 +40,8 @@ async function handleMessage(
       return commandForTab(sender.tab?.id)
     case 'ITEM_RESULT':
       return onItemResult(message, sender.tab?.id)
+    case 'FILL_DONE':
+      return onFillDone(message)
     default:
       return undefined
   }
@@ -62,26 +64,78 @@ async function startFill(
 
   if (items.length === 0) return { ok: false, reason: 'Nothing to add' }
 
-  const tab = await chrome.tabs.create({
-    url: PROVIDER_URLS[provider].searchUrl(items[0].searchQuery),
-    active: true,
-  })
-  if (tab.id === undefined) return { ok: false, reason: 'Could not open the store tab' }
+  const urls = PROVIDER_URLS[provider]
+  // Reuse the tab the user is already on if it's this store — no pointless
+  // second tab. Otherwise open one.
+  const [active] = await chrome.tabs.query({ active: true, currentWindow: true })
+  let tabId: number | undefined
+  if (active?.id !== undefined && active.url && urls.matches(new URL(active.url))) {
+    tabId = active.id
+  } else {
+    const tab = await chrome.tabs.create({ url: urls.searchUrl(items[0].searchQuery), active: true })
+    tabId = tab.id
+  }
+  if (tabId === undefined) return { ok: false, reason: 'Could not open the store tab' }
 
+  const mode: FillJob['mode'] = provider === 'blinkit' ? 'fast' : 'stepwise'
   const job: FillJob = {
     id: crypto.randomUUID(),
     provider,
     dish: list.dish,
-    tabId: tab.id,
+    tabId,
     items,
     currentIndex: 0,
     status: 'running',
     startedAt: Date.now(),
     lastProgressAt: Date.now(),
+    mode,
   }
   await publish(job)
-  await chrome.alarms.create(WATCHDOG_ALARM, { periodInMinutes: 0.5 })
+
+  if (mode === 'fast') {
+    // One-shot: tell the (possibly already-loaded) content script to fill
+    // everything at once. If it isn't listening yet it'll ask on READY.
+    dispatchRunAll(job)
+  } else {
+    await chrome.alarms.create(WATCHDOG_ALARM, { periodInMinutes: 0.5 })
+  }
   return { ok: true }
+}
+
+function runAllCommand(job: FillJob): ContentCommand {
+  return {
+    type: 'RUN_ALL',
+    jobId: job.id,
+    provider: job.provider,
+    dish: job.dish,
+    items: job.items,
+    overlay: overlayFrom(job),
+  }
+}
+
+async function dispatchRunAll(job: FillJob): Promise<void> {
+  job.dispatched = true
+  await setActiveJob(job)
+  pushToTab(job.tabId, runAllCommand(job))
+}
+
+async function onFillDone(
+  message: Extract<ContentMessage, { type: 'FILL_DONE' }>,
+): Promise<ContentCommand> {
+  const job = await getActiveJob()
+  if (!job || job.id !== message.jobId || job.status !== 'running') return { type: 'IDLE' }
+
+  for (const r of message.results) {
+    const item = job.items[r.index]
+    if (!item) continue
+    item.status = r.status
+    item.matched = r.matched
+    item.error = r.error
+  }
+  job.status = 'done'
+  job.lastProgressAt = Date.now()
+  await publish(job)
+  return { type: 'JOB_COMPLETE', overlay: overlayFrom(job) }
 }
 
 async function cancelFill(): Promise<{ ok: boolean }> {
@@ -101,6 +155,12 @@ async function commandForTab(tabId: number | undefined): Promise<ContentCommand>
   if (!job || tabId === undefined || job.tabId !== tabId) return { type: 'IDLE' }
   if (job.status === 'done') return { type: 'JOB_COMPLETE', overlay: overlayFrom(job) }
   if (job.status !== 'running') return { type: 'IDLE' }
+  // Fast mode: hand the whole list over once (the content script reloads the
+  // page after writing the cart, and re-announces here — by then it's done).
+  if (job.mode === 'fast') {
+    if (!job.dispatched) await dispatchRunAll(job)
+    return job.dispatched ? runAllCommand(job) : { type: 'IDLE' }
+  }
   return runCommand(job)
 }
 

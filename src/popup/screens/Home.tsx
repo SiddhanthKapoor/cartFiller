@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useMutation } from '@tanstack/react-query'
 import type { SavedMeal, Settings, ShoppingList } from '@/shared/types'
@@ -21,6 +21,47 @@ const SUGGESTIONS = [
   'Paneer Butter Masala under ₹500',
   'High-protein breakfast for 5 days',
 ]
+
+const TIP_KEY = 'cookcart.tipDismissed'
+
+/** One-time reminder: the fill runs on your own logged-in store session. */
+function OnboardingTip() {
+  const [show, setShow] = useState(false)
+  useEffect(() => {
+    void chrome.storage.local.get(TIP_KEY).then((r) => setShow(!r[TIP_KEY]))
+  }, [])
+  if (!show) return null
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      className="mb-4 overflow-hidden"
+    >
+      <div className="glass rounded-2xl px-4 py-3">
+        <div className="flex items-start gap-2.5">
+          <span className="mt-0.5 text-[13px]">🛒</span>
+          <div className="flex-1">
+            <p className="text-[12px] leading-relaxed text-white/85">
+              Before filling, open your store (Blinkit / Zepto / Instamart), make sure you're{' '}
+              <span className="text-white">logged in</span> and your{' '}
+              <span className="text-white">delivery location is set</span>. CookCart fills the cart
+              on your own session — it never sees your login.
+            </p>
+            <button
+              onClick={() => {
+                setShow(false)
+                void chrome.storage.local.set({ [TIP_KEY]: true })
+              }}
+              className="mt-2 text-[11.5px] font-medium text-accent"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
 
 export function HomeScreen({
   settings,
@@ -86,7 +127,7 @@ export function HomeScreen({
 
       <div className="flex-1 overflow-y-auto px-5 pb-5">
         {/* hero */}
-        <div className="pt-7 pb-5">
+        <div className="pt-7 pb-4">
           <h1 className="text-[22px] leading-snug font-semibold tracking-tight text-white">
             What do you want
             <br />
@@ -96,6 +137,8 @@ export function HomeScreen({
             Ingredients, quantities, and a filled cart — automatically.
           </p>
         </div>
+
+        <OnboardingTip />
 
         {/* input */}
         <div className="glass flex items-center gap-2 rounded-2xl p-1.5 pl-4 transition-colors focus-within:border-accent/50">

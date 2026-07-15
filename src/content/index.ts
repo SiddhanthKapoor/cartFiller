@@ -1,7 +1,8 @@
-import type { ContentCommand, ContentMessage } from '@/shared/messages'
+import type { ContentCommand, ContentMessage, FastItemResult } from '@/shared/messages'
 import { sleep } from './dom'
 import { runItem, type ItemOutcome } from './runner'
 import { removeOverlay, renderOverlay } from './overlay'
+import { blinkitFastFill, blinkitReady } from './providers/blinkitFast'
 
 /**
  * Content script lifecycle:
@@ -33,6 +34,41 @@ async function handleCommand(command: ContentCommand | undefined): Promise<void>
     case 'JOB_COMPLETE':
       renderOverlay(command.overlay, cancelJob)
       return
+
+    case 'RUN_ALL': {
+      if (busy) return
+      busy = true
+      renderOverlay(command.overlay, cancelJob)
+
+      const skipAll = (error: string): FastItemResult[] =>
+        command.items.map((_, index) => ({ index, status: 'skipped', error }))
+
+      let results: FastItemResult[]
+      if (!blinkitReady()) {
+        results = skipAll('Open Blinkit and set a delivery location first')
+      } else {
+        try {
+          results = await Promise.race([
+            blinkitFastFill(
+              command.items.map((it) => ({ ingredient: it.ingredient, searchQuery: it.searchQuery })),
+            ),
+            sleep(25_000).then(() => skipAll('Timed out')),
+          ])
+        } catch {
+          results = skipAll('Fill failed')
+        }
+      }
+
+      await send({ type: 'FILL_DONE', jobId: command.jobId, results })
+      // Reload so the app hydrates the cart we just wrote (unless nothing
+      // landed — then leave the page as-is and let the popup show why).
+      if (results.some((r) => r.status === 'added')) {
+        setTimeout(() => location.reload(), 250)
+      } else {
+        busy = false
+      }
+      return
+    }
 
     case 'RUN_ITEM': {
       if (busy) return
@@ -78,11 +114,11 @@ async function handleCommand(command: ContentCommand | undefined): Promise<void>
   }
 }
 
-// Pushed commands (watchdog advance, cancellation) — not request/response.
+// Pushed commands (fast fill, watchdog advance, cancellation).
 chrome.runtime.onMessage.addListener((message: ContentCommand) => {
   if (message?.type === 'IDLE' || message?.type === 'JOB_COMPLETE') {
     void handleCommand(message)
-  } else if (message?.type === 'RUN_ITEM' && !busy) {
+  } else if ((message?.type === 'RUN_ITEM' || message?.type === 'RUN_ALL') && !busy) {
     void handleCommand(message)
   }
 })

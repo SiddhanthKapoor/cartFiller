@@ -1,8 +1,53 @@
 import { useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import type { Settings } from '@/shared/types'
 import { AI_PROVIDER_LIST, AI_PROVIDERS, defaultModelFor } from '@/shared/aiProviders'
 import { Field, IconButton, PrimaryButton, Screen, inputClass } from '../components/ui'
 import { ChevronLeftIcon } from '../components/icons'
+
+/** Plain-language steps for a first-timer to get a free Gemini key. */
+function GeminiKeyHelp() {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="-mt-2">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 text-[11.5px] font-medium text-accent"
+      >
+        <span className="grid h-4 w-4 place-items-center rounded-full border border-accent/50 text-[10px]">
+          ?
+        </span>
+        How do I get a free key?
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.ol
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-2 space-y-1.5 overflow-hidden rounded-xl border border-line bg-surface px-3.5 py-3 text-[11.5px] leading-relaxed text-mist"
+          >
+            <li>
+              1. Open{' '}
+              <a
+                href="https://aistudio.google.com/apikey"
+                target="_blank"
+                rel="noreferrer"
+                className="text-accent underline"
+              >
+                aistudio.google.com/apikey
+              </a>{' '}
+              and sign in with any Google account.
+            </li>
+            <li>2. Click <span className="text-white/80">“Create API key”</span>.</li>
+            <li>3. Copy the key it shows (starts with <span className="text-white/80">AIza…</span>).</li>
+            <li>4. Paste it above and hit Save. It's free for everyday use.</li>
+          </motion.ol>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 export function SettingsScreen({
   settings,
@@ -123,6 +168,8 @@ export function SettingsScreen({
             </button>
           </div>
         </Field>
+
+        {draft.ai.provider === 'gemini' && <GeminiKeyHelp />}
 
         {/* budget */}
         <div>

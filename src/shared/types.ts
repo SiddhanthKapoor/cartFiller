@@ -123,6 +123,10 @@ export interface FillJob {
   startedAt: number
   /** watchdog: last time the job made observable progress */
   lastProgressAt: number
+  /** 'fast' = one-shot cart write (Blinkit); 'stepwise' = DOM per item */
+  mode: 'fast' | 'stepwise'
+  /** fast mode: whether RUN_ALL has already been sent to the tab */
+  dispatched?: boolean
 }
 
 // ---------- Settings ----------

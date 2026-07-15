@@ -9,6 +9,13 @@ export type PopupMessage =
 
 // ---------- content -> background ----------
 
+export interface FastItemResult {
+  index: number
+  status: 'added' | 'skipped'
+  matched?: MatchedProduct
+  error?: string
+}
+
 export type ContentMessage =
   | { type: 'CONTENT_READY'; href: string }
   | {
@@ -19,6 +26,7 @@ export type ContentMessage =
       matched?: MatchedProduct
       error?: string
     }
+  | { type: 'FILL_DONE'; jobId: string; results: FastItemResult[] }
 
 // ---------- background -> content (responses / pushes) ----------
 
@@ -32,6 +40,14 @@ export type ContentCommand =
       index: number
       total: number
       /** compact status of every item, for the on-page overlay */
+      overlay: OverlayState
+    }
+  | {
+      type: 'RUN_ALL'
+      jobId: string
+      provider: ProviderId
+      dish: string
+      items: JobItem[]
       overlay: OverlayState
     }
   | { type: 'JOB_COMPLETE'; overlay: OverlayState }
