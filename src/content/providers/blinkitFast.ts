@@ -57,6 +57,16 @@ export function blinkitReady(): boolean {
   return readLatLon() !== null
 }
 
+/** Wait for the page to hydrate its delivery location (set async after load). */
+export async function waitForBlinkitReady(timeoutMs = 10_000): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    if (readLatLon() !== null) return true
+    await new Promise((r) => setTimeout(r, 300))
+  }
+  return false
+}
+
 async function searchProducts(
   query: string,
   headers: Record<string, string>,

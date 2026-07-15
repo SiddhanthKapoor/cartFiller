@@ -2,7 +2,7 @@ import type { ContentCommand, ContentMessage, FastItemResult } from '@/shared/me
 import { sleep } from './dom'
 import { runItem, type ItemOutcome } from './runner'
 import { removeOverlay, renderOverlay } from './overlay'
-import { blinkitFastFill, blinkitReady } from './providers/blinkitFast'
+import { blinkitFastFill, waitForBlinkitReady } from './providers/blinkitFast'
 
 /**
  * Content script lifecycle:
@@ -54,7 +54,8 @@ async function handleCommand(command: ContentCommand | undefined): Promise<void>
         command.items.map((_, index) => ({ index, status: 'skipped', error }))
 
       let results: FastItemResult[]
-      if (!blinkitReady()) {
+      // The page sets its delivery location a moment after load — wait for it.
+      if (!(await waitForBlinkitReady())) {
         results = skipAll('Open Blinkit and set a delivery location first')
       } else {
         try {

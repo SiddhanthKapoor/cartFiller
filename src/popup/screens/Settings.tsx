@@ -1,26 +1,10 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import type { Settings } from '@/shared/types'
-import type { AiProviderKey } from '@/shared/aiProviders'
 import { AI_PROVIDER_LIST, AI_PROVIDERS, defaultModelFor } from '@/shared/aiProviders'
 import { Field, IconButton, PrimaryButton, Screen, inputClass } from '../components/ui'
-import {
-  BrandClaude,
-  BrandGemini,
-  BrandGroq,
-  BrandOpenAI,
-  BrandOpenRouter,
-  ChevronLeftIcon,
-  EyeIcon,
-} from '../components/icons'
-
-const PROVIDER_GLYPH: Record<AiProviderKey, typeof BrandGemini> = {
-  gemini: BrandGemini,
-  claude: BrandClaude,
-  openai: BrandOpenAI,
-  groq: BrandGroq,
-  openrouter: BrandOpenRouter,
-}
+import { ChevronLeftIcon, EyeIcon } from '../components/icons'
+import { AI_LOGO } from '../assets/brands'
 
 /** Plain-language steps for a first-timer to get a free Gemini key. */
 function GeminiKeyHelp() {
@@ -127,22 +111,18 @@ export function SettingsScreen({
             {AI_PROVIDER_LIST.map((p) => {
               const active = draft.ai.provider === p.key
               const hasKey = (draft.ai.keys[p.key] ?? '').trim() !== ''
-              const Glyph = PROVIDER_GLYPH[p.key]
               return (
                 <button
                   key={p.key}
                   onClick={() => selectProvider(p.key)}
-                  className={`brutal-sm relative flex items-center gap-1.5 px-2.5 py-2 text-[11px] transition-colors ${
-                    active ? 'bg-ink text-paper' : 'text-ink hover:bg-wash'
+                  className={`brutal-sm relative flex items-center gap-1.5 px-2 py-2 text-[10.5px] transition-colors ${
+                    active ? 'bg-accent-soft' : 'bg-paper hover:bg-wash'
                   }`}
                 >
-                  <Glyph size={14} />
-                  <span className="mono-label truncate">{p.label}</span>
-                  {hasKey && (
-                    <span
-                      className={`absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full ${active ? 'bg-paper' : 'bg-ink'}`}
-                    />
-                  )}
+                  <img src={AI_LOGO[p.key]} alt="" className="h-4 w-4 flex-none object-contain" />
+                  <span className="mono-label truncate text-ink">{p.label}</span>
+                  {hasKey && <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 bg-lime" />}
+                  {active && <span className="absolute inset-x-0 bottom-0 h-1 bg-accent" />}
                 </button>
               )
             })}

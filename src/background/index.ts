@@ -69,8 +69,10 @@ async function startFill(
   // second tab. Otherwise open one.
   const [active] = await chrome.tabs.query({ active: true, currentWindow: true })
   let tabId: number | undefined
+  let reused = false
   if (active?.id !== undefined && active.url && urls.matches(new URL(active.url))) {
     tabId = active.id
+    reused = true
   } else {
     const tab = await chrome.tabs.create({ url: urls.searchUrl(items[0].searchQuery), active: true })
     tabId = tab.id
@@ -95,8 +97,17 @@ async function startFill(
   await publish(job)
 
   if (mode === 'fast') {
-    // Blinkit: same-origin search, so the content script does it all.
-    dispatchRunAll(job)
+    // A newly created tab already has a fresh content script. But a REUSED
+    // tab may hold a content script orphaned by the last extension reload —
+    // it silently ignores messages ("stuck at 0/N"). Reload it so a live
+    // script runs; it announces CONTENT_READY and gets RUN_ALL (commandForTab).
+    if (reused) {
+      try {
+        await chrome.tabs.update(tabId, { url: urls.searchUrl(items[0].searchQuery), active: true })
+      } catch {
+        return { ok: false, reason: 'Could not open the store tab' }
+      }
+    }
   } else {
     await chrome.alarms.create(WATCHDOG_ALARM, { periodInMinutes: 0.5 })
   }
@@ -112,12 +123,6 @@ function runAllCommand(job: FillJob): ContentCommand {
     items: job.items,
     overlay: overlayFrom(job),
   }
-}
-
-async function dispatchRunAll(job: FillJob): Promise<void> {
-  job.dispatched = true
-  await setActiveJob(job)
-  pushToTab(job.tabId, runAllCommand(job))
 }
 
 async function onFillDone(
@@ -156,10 +161,14 @@ async function commandForTab(tabId: number | undefined): Promise<ContentCommand>
   if (!job || tabId === undefined || job.tabId !== tabId) return { type: 'IDLE' }
   if (job.status === 'done') return { type: 'JOB_COMPLETE', overlay: overlayFrom(job) }
   if (job.status !== 'running') return { type: 'IDLE' }
-  // Fast mode: hand the whole list over once (the content script reloads the
-  // page after writing the cart, and re-announces here — by then it's done).
+  // Fast mode: hand the whole list to the fresh content script once (it
+  // reloads the page after writing the cart, and re-announces here — by then
+  // the job is done and it gets JOB_COMPLETE above).
   if (job.mode === 'fast') {
-    if (!job.dispatched) await dispatchRunAll(job)
+    if (!job.dispatched) {
+      job.dispatched = true
+      await setActiveJob(job)
+    }
     return runAllCommand(job)
   }
   return runCommand(job)

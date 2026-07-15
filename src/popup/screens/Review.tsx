@@ -5,6 +5,7 @@ import { PROVIDERS } from '@/shared/types'
 import { formatQuantity, quantityStep, scaleQuantity } from '@/shared/units'
 import { normalizeIngredient } from '@/shared/normalize'
 import { IconButton, Screen, Toggle } from '../components/ui'
+import { STORE_LOGO } from '../assets/brands'
 import {
   CartIcon,
   CheckIcon,
@@ -309,21 +310,16 @@ export function ReviewScreen({
           {Object.values(PROVIDERS).map((provider) => (
             <motion.button
               key={provider.id}
-              whileHover={{ x: -1, y: -1, boxShadow: '3px 3px 0 #0a0a0a' }}
+              whileHover={{ x: -1, y: -1, boxShadow: '4px 4px 0 #ff5a1f' }}
               whileTap={{ x: 1, y: 1, boxShadow: '0 0 0 #0a0a0a' }}
               transition={{ type: 'spring', stiffness: 600, damping: 30 }}
               style={{ boxShadow: '2px 2px 0 #0a0a0a' }}
               disabled={fillBusy || activeCount === 0}
               onClick={() => onFill(provider.id)}
-              className="flex flex-col items-start gap-1.5 border-2 border-ink bg-paper px-2.5 py-2 text-left disabled:opacity-40"
+              className="flex flex-col items-center gap-1.5 border-2 border-ink bg-paper px-1.5 py-2.5 text-center disabled:opacity-40"
             >
-              <span className="flex items-center gap-1.5">
-                <span className="tile grid h-5 w-5 place-items-center text-[10px] font-bold">
-                  {provider.label[0]}
-                </span>
-                <span className="mono-label text-[10px]">{provider.label}</span>
-              </span>
-              <span className="flex items-center gap-1 text-[9px] text-mute uppercase">
+              <img src={STORE_LOGO[provider.id]} alt={provider.label} className="h-4 max-w-full object-contain" />
+              <span className="flex items-center gap-1 text-[9px] font-bold text-accent uppercase">
                 Fill Cart <CartIcon size={9} />
               </span>
             </motion.button>

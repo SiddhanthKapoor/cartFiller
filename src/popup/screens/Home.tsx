@@ -5,15 +5,8 @@ import type { SavedMeal, Settings, ShoppingList } from '@/shared/types'
 import { activeApiKey } from '@/shared/types'
 import { generateShoppingList, AiError } from '@/ai/client'
 import { Screen, IconButton } from '../components/ui'
-import {
-  ArrowUpIcon,
-  GearIcon,
-  KeyIcon,
-  LogoMark,
-  SparkleIcon,
-  StarIcon,
-  TrashIcon,
-} from '../components/icons'
+import { CookingLoader } from '../components/CookingLoader'
+import { ArrowUpIcon, GearIcon, KeyIcon, LogoMark, StarIcon, TrashIcon } from '../components/icons'
 
 const SUGGESTIONS = [
   'Chicken Biryani',
@@ -154,10 +147,10 @@ export function HomeScreen({
             onClick={() => submit(query)}
             disabled={!query.trim() || generate.isPending}
             aria-label="Generate"
-            className="tile grid w-12 flex-none place-items-center border-l-2 border-ink disabled:opacity-30"
+            className="grid w-12 flex-none place-items-center border-l-2 border-ink bg-accent text-paper disabled:bg-mute-soft"
           >
             {generate.isPending ? (
-              <span className="animate-spin-slow h-4 w-4 rounded-full border-2 border-paper/30 border-t-paper" />
+              <span className="animate-spin-slow h-4 w-4 rounded-full border-2 border-paper/40 border-t-paper" />
             ) : (
               <ArrowUpIcon size={16} className="rotate-90" />
             )}
@@ -177,15 +170,13 @@ export function HomeScreen({
               exit={{ opacity: 0 }}
               className="mt-5"
             >
-              <div className="brutal-flat px-4 py-4">
-                <div className="mono-label flex items-center gap-2 text-[11px] text-ink">
-                  <SparkleIcon size={13} />
-                  Working out ingredients & quantities…
+              <div className="brutal-flat px-4 pt-2 pb-4">
+                <CookingLoader />
+                <div className="mono-label text-center text-[11px] text-ink">
+                  Cooking up your list…
                 </div>
-                <div className="mt-4 space-y-2">
-                  {[0.9, 0.75, 0.85, 0.6].map((w, i) => (
-                    <div key={i} className="shimmer h-8 border-2 border-ink" style={{ width: `${w * 100}%` }} />
-                  ))}
+                <div className="mt-1 text-center text-[10.5px] text-mute">
+                  working out ingredients & quantities
                 </div>
               </div>
             </motion.div>
@@ -262,7 +253,7 @@ export function HomeScreen({
                         <IconButton
                           onClick={() => onDeleteMeal(meal.list.id)}
                           aria-label="Delete"
-                          className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
+                          className="h-7 w-7 hover:bg-danger hover:text-paper"
                         >
                           <TrashIcon size={13} />
                         </IconButton>
