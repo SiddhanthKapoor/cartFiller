@@ -136,6 +136,7 @@ const PROCESSED_TOKENS = new Set([
   'pickle',
   'achar',
   'sirka', // "sirka pyaz" = pickling onions, not cooking onions
+  'spring', // "spring onion" is a distinct ingredient from onion
 
   'chips',
   'crisps',

@@ -63,25 +63,31 @@ export function cardFromAddButton(button: HTMLElement): HTMLElement | null {
   return null
 }
 
-function extractName(card: HTMLElement, cardText: string): string {
-  // Image alt text is the most reliable name source on these sites.
+function isNameLeaf(text: string): boolean {
+  if (text.length < 3) return false
+  if (PRICE_RE.test(text)) return false // "₹36"
+  if (/^\d/.test(text)) return false // "500 g", "10% OFF"
+  if (/^(add|adding|save|sold out|out of stock|off|ad)$/i.test(text)) return false
+  if (/^\d+\s*(min|mins)/i.test(text)) return false // "8 MINS"
+  return true
+}
+
+function extractName(card: HTMLElement): string {
+  // Image alt is cleanest when present.
   for (const img of card.querySelectorAll<HTMLImageElement>('img[alt]')) {
     const alt = img.alt.trim()
     if (alt.length > 2 && !/^₹/.test(alt) && alt.toLowerCase() !== 'image') return alt
   }
-  // Otherwise: the longest text segment that is not a price or pack size.
-  const segments = cardText
-    .split(/[|•\n]/)
-    .flatMap((s) => s.split(/(?=₹)/))
-    .map((s) => s.trim())
-    .filter(
-      (s) =>
-        s.length > 3 &&
-        !PRICE_RE.test(s) &&
-        !/^\d/.test(s) &&
-        !/^(add|save|off|out of stock)/i.test(s),
-    )
-  return segments.sort((a, b) => b.length - a.length)[0] ?? ''
+  // Blinkit (and similar) render the product name as its own text node,
+  // separate from price and pack. Reading the whole card's textContent glues
+  // them ("...Ketchup415 g"), which breaks tokenized matching — so pick the
+  // first *leaf* element that reads like a name.
+  for (const el of card.querySelectorAll<HTMLElement>('*')) {
+    if (el.children.length > 0) continue
+    const t = textOf(el)
+    if (isNameLeaf(t)) return t
+  }
+  return ''
 }
 
 export function extractProduct(card: HTMLElement, cardIndex: number): ScrapedProduct {
@@ -89,7 +95,7 @@ export function extractProduct(card: HTMLElement, cardIndex: number): ScrapedPro
   const priceMatch = PRICE_RE.exec(text)
   const packMatch = PACK_RE.exec(text)
   return {
-    name: extractName(card, text),
+    name: extractName(card),
     priceInr: priceMatch ? Number(priceMatch[1].replace(/,/g, '')) : null,
     packText: packMatch ? packMatch[0] : '',
     cardIndex,

@@ -1,4 +1,4 @@
-import { chooseBest, rankProducts, sameProduct } from '@/shared/matching'
+import { chooseBest, tokenize } from '@/shared/matching'
 import type { CardHandle } from './scrape'
 import type { ContentCommand } from '@/shared/messages'
 import type { MatchedProduct } from '@/shared/types'
@@ -6,7 +6,6 @@ import { currentSearchQuery } from '@/shared/providers'
 import { pause, waitFor, waitForQuietDom } from './dom'
 import { adapterFor } from './providers'
 import { blinkitCartCount } from './providers/blinkitCart'
-import { blinkitApiSearch, hasLocation } from './providers/blinkitSearch'
 import { blinkitClientSearch } from './providers/blinkitNav'
 
 type RunItemCommand = Extract<ContentCommand, { type: 'RUN_ITEM' }>
@@ -54,32 +53,29 @@ export async function runItem(command: RunItemCommand): Promise<ItemOutcome> {
 
   await waitForQuietDom()
 
-  // Pick the product. On Blinkit we select from the clean search API and
-  // wait for the matching card to render — this both gives better matches
-  // and guarantees the DOM has refreshed to the new query (so we never click
-  // a stale card left over from the previous ingredient).
-  let pick: Pick | null = null
-  if (isBlinkit && hasLocation()) {
-    pick = await pickBlinkit(command, adapter)
-  }
-  if (!pick) {
-    const cards = await waitFor(
-      () => {
-        const scraped = adapter.scrapeCards()
-        return scraped.length > 0 ? scraped : null
-      },
-      { timeoutMs: 12_000, intervalMs: 300 },
-    )
-    if (!cards) {
-      return {
-        kind: 'result',
-        status: 'skipped',
-        error: `No products found for “${item.searchQuery}”`,
-      }
+  // Pick the product from the rendered results. On Blinkit we first wait for
+  // the cards to actually reflect this query (not stale cards from the
+  // previous ingredient) before ranking — no extra network calls, so no
+  // rate limiting.
+  const cards = await waitFor(
+    () => {
+      const scraped = adapter.scrapeCards()
+      if (scraped.length === 0) return null
+      if (isBlinkit && !cardsMatchQuery(scraped, item.searchQuery)) return null
+      return scraped
+    },
+    { timeoutMs: 12_000, intervalMs: 300 },
+  )
+
+  if (!cards) {
+    return {
+      kind: 'result',
+      status: 'skipped',
+      error: `No products found for “${item.searchQuery}”`,
     }
-    pick = pickViaDom(command, cards)
   }
 
+  const pick = pickViaDom(command, cards)
   if (!pick) {
     return {
       kind: 'result',
@@ -166,55 +162,18 @@ function pickViaDom(command: RunItemCommand, cards: CardHandle[]): Pick | null {
 }
 
 /**
- * Rank products from Blinkit's clean search API, then wait for the best-
- * ranked one to appear as a rendered card we can click. Waiting on the
- * API-chosen product doubles as proof the DOM has refreshed to this query
- * (not stale cards from the previous ingredient). Returns null if the API
- * is unavailable so the caller can fall back to DOM scraping.
+ * Do the rendered cards actually correspond to this query? After an in-app
+ * search the previous ingredient's cards linger for a moment; requiring a
+ * card whose name shares a token with the query ensures we rank the right
+ * results and never click a stale card.
  */
-async function pickBlinkit(
-  command: RunItemCommand,
-  adapter: ReturnType<typeof adapterFor>,
-): Promise<Pick | null> {
-  let apiProducts
-  try {
-    apiProducts = await blinkitApiSearch(command.item.searchQuery)
-  } catch {
-    return null
-  }
-  if (apiProducts.length === 0) return null
-
-  const ranked = rankProducts(
-    command.item.ingredient,
-    command.item.searchQuery,
-    apiProducts.map((p) => p.scraped),
-  )
-  if (ranked.length === 0) return null
-
-  // Wait for the best-ranked product to render, not merely the first one that
-  // happens to be on screen. Otherwise a lower-ranked but early-rendered item
-  // (e.g. "Green Chilli Pickle" before fresh green chillies paint) gets
-  // clicked. We take the #1 pick the moment it appears, but keep polling —
-  // settling for the best rendered so far only once the window elapses.
-  const seen: { rank: number; pick: Pick | null } = { rank: Infinity, pick: null }
-  const top = await waitFor(
-    () => {
-      const cards = adapter.scrapeCards()
-      for (let i = 0; i < ranked.length; i++) {
-        const card = cards.find((c) => sameProduct(ranked[i].name, c.product.name))
-        if (!card) continue
-        if (i === 0) return { card, best: ranked[0] } // top pick is here — done
-        if (i < seen.rank) {
-          seen.rank = i
-          seen.pick = { card, best: ranked[i] }
-        }
-        break // best currently-rendered found this tick; wait for something better
-      }
-      return null
-    },
-    { timeoutMs: 12_000, intervalMs: 300 },
-  )
-  return top ?? seen.pick
+function cardsMatchQuery(cards: CardHandle[], searchQuery: string): boolean {
+  const want = tokenize(searchQuery)
+  if (want.length === 0) return true
+  return cards.some((c) => {
+    const have = new Set(tokenize(c.product.name))
+    return want.some((t) => have.has(t))
+  })
 }
 
 /**
