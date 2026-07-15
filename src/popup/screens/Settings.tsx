@@ -1,9 +1,26 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import type { Settings } from '@/shared/types'
+import type { AiProviderKey } from '@/shared/aiProviders'
 import { AI_PROVIDER_LIST, AI_PROVIDERS, defaultModelFor } from '@/shared/aiProviders'
 import { Field, IconButton, PrimaryButton, Screen, inputClass } from '../components/ui'
-import { ChevronLeftIcon } from '../components/icons'
+import {
+  BrandClaude,
+  BrandGemini,
+  BrandGroq,
+  BrandOpenAI,
+  BrandOpenRouter,
+  ChevronLeftIcon,
+  EyeIcon,
+} from '../components/icons'
+
+const PROVIDER_GLYPH: Record<AiProviderKey, typeof BrandGemini> = {
+  gemini: BrandGemini,
+  claude: BrandClaude,
+  openai: BrandOpenAI,
+  groq: BrandGroq,
+  openrouter: BrandOpenRouter,
+}
 
 /** Plain-language steps for a first-timer to get a free Gemini key. */
 function GeminiKeyHelp() {
@@ -12,11 +29,9 @@ function GeminiKeyHelp() {
     <div className="-mt-2">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 text-[11.5px] font-medium text-accent"
+        className="mono-label flex items-center gap-1.5 text-[11px] text-ink underline"
       >
-        <span className="grid h-4 w-4 place-items-center rounded-full border border-accent/50 text-[10px]">
-          ?
-        </span>
+        <span className="grid h-4 w-4 place-items-center border-2 border-ink text-[9px]">?</span>
         How do I get a free key?
       </button>
       <AnimatePresence>
@@ -25,7 +40,7 @@ function GeminiKeyHelp() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-2 space-y-1.5 overflow-hidden rounded-xl border border-line bg-surface px-3.5 py-3 text-[11.5px] leading-relaxed text-mist"
+            className="mt-2 space-y-1.5 overflow-hidden border-2 border-ink px-3.5 py-3 text-[11px] leading-relaxed text-mute"
           >
             <li>
               1. Open{' '}
@@ -33,14 +48,14 @@ function GeminiKeyHelp() {
                 href="https://aistudio.google.com/apikey"
                 target="_blank"
                 rel="noreferrer"
-                className="text-accent underline"
+                className="text-ink underline"
               >
                 aistudio.google.com/apikey
               </a>{' '}
               and sign in with any Google account.
             </li>
-            <li>2. Click <span className="text-white/80">“Create API key”</span>.</li>
-            <li>3. Copy the key it shows (starts with <span className="text-white/80">AIza…</span>).</li>
+            <li>2. Click <span className="text-ink">“Create API key”</span>.</li>
+            <li>3. Copy the key it shows (starts with <span className="text-ink">AIza…</span>).</li>
             <li>4. Paste it above and hit Save. It's free for everyday use.</li>
           </motion.ol>
         )}
@@ -97,35 +112,37 @@ export function SettingsScreen({
 
   return (
     <Screen>
-      <div className="flex items-center gap-1 px-3 pt-4 pb-2">
+      <div className="flex items-center gap-2.5 border-b-2 border-ink px-4 py-3.5">
         <IconButton onClick={onBack} aria-label="Back">
-          <ChevronLeftIcon size={18} />
+          <ChevronLeftIcon size={16} />
         </IconButton>
-        <h2 className="px-1 text-[15px] font-semibold tracking-tight">Settings</h2>
+        <h2 className="mono-label text-[15px]">Settings</h2>
       </div>
 
-      <div className="flex-1 space-y-5 overflow-y-auto px-5 py-3">
+      <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
         {/* provider */}
         <div>
-          <span className="mb-1.5 block text-[11px] font-medium tracking-wide text-mist uppercase">
-            Provider
-          </span>
-          <div className="flex flex-wrap gap-1.5">
+          <span className="mono-label mb-2 block text-[11px] text-ink">AI Provider</span>
+          <div className="grid grid-cols-3 gap-2">
             {AI_PROVIDER_LIST.map((p) => {
               const active = draft.ai.provider === p.key
               const hasKey = (draft.ai.keys[p.key] ?? '').trim() !== ''
+              const Glyph = PROVIDER_GLYPH[p.key]
               return (
                 <button
                   key={p.key}
                   onClick={() => selectProvider(p.key)}
-                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11.5px] transition-colors ${
-                    active
-                      ? 'border-accent/60 bg-accent-dim text-accent'
-                      : 'border-line bg-surface text-white/70 hover:border-line-strong hover:text-white'
+                  className={`brutal-sm relative flex items-center gap-1.5 px-2.5 py-2 text-[11px] transition-colors ${
+                    active ? 'bg-ink text-paper' : 'text-ink hover:bg-wash'
                   }`}
                 >
-                  {p.label}
-                  {hasKey && <span className="h-1 w-1 rounded-full bg-accent" />}
+                  <Glyph size={14} />
+                  <span className="mono-label truncate">{p.label}</span>
+                  {hasKey && (
+                    <span
+                      className={`absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full ${active ? 'bg-paper' : 'bg-ink'}`}
+                    />
+                  )}
                 </button>
               )
             })}
@@ -134,23 +151,29 @@ export function SettingsScreen({
 
         {/* model */}
         <Field label="Model">
-          <select
-            value={draft.ai.model}
-            onChange={(e) => setDraft({ ...draft, ai: { ...draft.ai, model: e.target.value } })}
-            className={`${inputClass} appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2212%22%20height=%2212%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23888%22%20stroke-width=%222%22%3E%3Cpath%20d=%22M6%209l6%206%206-6%22/%3E%3C/svg%3E')] bg-[position:right_12px_center] bg-no-repeat pr-8`}
-          >
-            {provider.models.map((model) => (
-              <option key={model} value={model}>
-                {model}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={draft.ai.model}
+              onChange={(e) => setDraft({ ...draft, ai: { ...draft.ai, model: e.target.value } })}
+              className={`${inputClass} appearance-none pr-9`}
+            >
+              {provider.models.map((model) => (
+                <option key={model} value={model}>
+                  {model}
+                </option>
+              ))}
+            </select>
+            <ChevronLeftIcon
+              size={14}
+              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 -rotate-90"
+            />
+          </div>
         </Field>
 
         {/* per-provider key */}
         <Field
           label={`${provider.label} API key`}
-          hint={`${provider.keyHint}. Each provider keeps its own key, stored only in this browser's extension storage and sent nowhere except ${provider.label}.`}
+          hint={`Kept per provider, stored only in this browser and sent nowhere except ${provider.label}.`}
         >
           <div className="relative">
             <input
@@ -158,13 +181,14 @@ export function SettingsScreen({
               value={currentKey}
               onChange={(e) => setKey(e.target.value)}
               placeholder={provider.keyPlaceholder}
-              className={`${inputClass} pr-16`}
+              className={`${inputClass} pr-12`}
             />
             <button
               onClick={() => setShowKey(!showKey)}
-              className="absolute top-1/2 right-3 -translate-y-1/2 text-[11px] text-mist hover:text-white"
+              aria-label={showKey ? 'Hide key' : 'Show key'}
+              className="absolute top-0 right-0 grid h-11 w-11 place-items-center border-l-2 border-ink hover:bg-wash"
             >
-              {showKey ? 'Hide' : 'Show'}
+              <EyeIcon size={15} open={showKey} />
             </button>
           </div>
         </Field>
@@ -173,11 +197,9 @@ export function SettingsScreen({
 
         {/* budget */}
         <div>
-          <div className="mb-1.5 flex items-baseline justify-between">
-            <span className="text-[11px] font-medium tracking-wide text-mist uppercase">
-              Default budget
-            </span>
-            <span className="text-[13px] font-semibold text-white tabular-nums">
+          <div className="mb-2 flex items-baseline justify-between">
+            <span className="mono-label text-[11px] text-ink">Default budget</span>
+            <span className="mono-label text-[14px] tabular-nums">
               {draft.budgetInr ? `₹${draft.budgetInr}` : 'Off'}
             </span>
           </div>
@@ -187,19 +209,17 @@ export function SettingsScreen({
             max={3000}
             step={100}
             value={draft.budgetInr ?? 0}
-            onChange={(e) =>
-              setDraft({ ...draft, budgetInr: Number(e.target.value) || null })
-            }
-            className="w-full accent-accent"
+            onChange={(e) => setDraft({ ...draft, budgetInr: Number(e.target.value) || null })}
+            className="w-full"
           />
-          <span className="mt-1 block text-[11px] leading-relaxed text-mist-dim">
+          <span className="mt-2 block text-[11px] leading-relaxed text-mute">
             Applied to every dish unless the request names its own budget. Slide to ₹0 to turn off.
           </span>
         </div>
       </div>
 
-      <div className="border-t border-line px-5 pt-3 pb-4">
-        <PrimaryButton onClick={save}>{saved ? 'Saved ✓' : 'Save'}</PrimaryButton>
+      <div className="border-t-2 border-ink px-5 pt-3.5 pb-4">
+        <PrimaryButton onClick={save}>{saved ? 'Saved ✓' : 'Save Settings'}</PrimaryButton>
       </div>
     </Screen>
   )

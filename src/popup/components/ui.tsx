@@ -1,9 +1,15 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { motion, type HTMLMotionProps } from 'motion/react'
 
-// ---------- buttons ----------
-
 type MotionButtonProps = HTMLMotionProps<'button'>
+
+const press = {
+  whileHover: { x: -1, y: -1, boxShadow: '5px 5px 0 #0a0a0a' },
+  whileTap: { x: 2, y: 2, boxShadow: '0px 0px 0 #0a0a0a' },
+  transition: { type: 'spring' as const, stiffness: 600, damping: 30 },
+}
+
+// ---------- buttons ----------
 
 export function PrimaryButton({
   children,
@@ -12,10 +18,9 @@ export function PrimaryButton({
 }: MotionButtonProps & { children: ReactNode }) {
   return (
     <motion.button
-      whileHover={{ scale: 1.015 }}
-      whileTap={{ scale: 0.97 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-      className={`flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-accent font-medium text-[13px] text-black transition-opacity disabled:opacity-40 ${className}`}
+      {...press}
+      style={{ boxShadow: '4px 4px 0 #0a0a0a' }}
+      className={`tile mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-ink text-[13px] disabled:opacity-40 ${className}`}
       {...props}
     >
       {children}
@@ -30,10 +35,9 @@ export function GhostButton({
 }: MotionButtonProps & { children: ReactNode }) {
   return (
     <motion.button
-      whileHover={{ scale: 1.015 }}
-      whileTap={{ scale: 0.97 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-      className={`flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-line bg-surface-2 font-medium text-[13px] text-white/85 transition-colors hover:border-line-strong disabled:opacity-40 ${className}`}
+      {...press}
+      style={{ boxShadow: '4px 4px 0 #0a0a0a' }}
+      className={`mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-ink bg-paper text-[13px] text-ink disabled:opacity-40 ${className}`}
       {...props}
     >
       {children}
@@ -48,7 +52,7 @@ export function IconButton({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode }) {
   return (
     <button
-      className={`grid h-8 w-8 flex-none place-items-center rounded-full text-mist transition-colors hover:bg-white/8 hover:text-white ${className}`}
+      className={`grid h-9 w-9 flex-none place-items-center border-2 border-ink bg-paper text-ink transition-colors hover:bg-ink hover:text-paper ${className}`}
       {...props}
     >
       {children}
@@ -76,19 +80,19 @@ export function Toggle({
       className="flex w-full items-center justify-between gap-3 text-left"
     >
       <span>
-        <span className="block text-[13px] text-white/90">{label}</span>
-        {hint && <span className="mt-0.5 block text-[11px] text-mist-dim">{hint}</span>}
+        <span className="mono-label block text-[12px] text-ink">{label}</span>
+        {hint && <span className="mt-0.5 block text-[11px] text-mute">{hint}</span>}
       </span>
       <span
-        className={`relative h-[26px] w-[44px] flex-none rounded-full transition-colors duration-300 ${
-          checked ? 'bg-accent' : 'bg-white/12'
+        className={`relative h-7 w-12 flex-none border-2 border-ink transition-colors ${
+          checked ? 'bg-ink' : 'bg-paper'
         }`}
       >
         <motion.span
           layout
-          transition={{ type: 'spring', stiffness: 600, damping: 35 }}
-          className="absolute top-[3px] h-5 w-5 rounded-full bg-white shadow-md"
-          style={{ left: checked ? 21 : 3 }}
+          transition={{ type: 'spring', stiffness: 700, damping: 34 }}
+          className={`absolute top-[2px] h-[20px] w-[20px] ${checked ? 'bg-paper' : 'bg-ink'}`}
+          style={{ left: checked ? 22 : 2 }}
         />
       </span>
     </button>
@@ -108,27 +112,25 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[11px] font-medium tracking-wide text-mist uppercase">
-        {label}
-      </span>
+      <span className="mono-label mb-1.5 block text-[11px] text-ink">{label}</span>
       {children}
-      {hint && <span className="mt-1.5 block text-[11px] leading-relaxed text-mist-dim">{hint}</span>}
+      {hint && <span className="mt-1.5 block text-[11px] leading-relaxed text-mute">{hint}</span>}
     </label>
   )
 }
 
 export const inputClass =
-  'h-10 w-full rounded-xl border border-line bg-surface-2 px-3 text-[13px] text-white placeholder:text-mist-dim outline-none transition-colors focus:border-accent/60'
+  'h-11 w-full border-2 border-ink bg-paper px-3 text-[13px] text-ink placeholder:text-mute-soft outline-none focus:shadow-[3px_3px_0_#0a0a0a]'
 
 // ---------- screen shell ----------
 
 export function Screen({ children }: { children: ReactNode }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: 24 }}
+      initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -24 }}
-      transition={{ type: 'spring', stiffness: 350, damping: 32 }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ type: 'spring', stiffness: 360, damping: 32 }}
       className="absolute inset-0 flex flex-col"
     >
       {children}

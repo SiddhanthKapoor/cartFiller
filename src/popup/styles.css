@@ -1,24 +1,20 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-ink: #0b0b0f;
-  --color-surface: #131318;
-  --color-surface-2: #1b1b22;
-  --color-line: rgba(255, 255, 255, 0.08);
-  --color-line-strong: rgba(255, 255, 255, 0.14);
-  --color-mist: rgba(255, 255, 255, 0.55);
-  --color-mist-dim: rgba(255, 255, 255, 0.35);
-  --color-accent: #30d158;
-  --color-accent-dim: rgba(48, 209, 88, 0.14);
-  --color-danger: #ff453a;
-  --color-warn: #ffd60a;
+  --color-ink: #0a0a0a;
+  --color-paper: #ffffff;
+  --color-line: #0a0a0a;
+  --color-mute: #6b6b6b;
+  --color-mute-soft: #9a9a9a;
+  --color-wash: #f4f4f2;
+  --color-danger: #c81e1e;
+  --color-warn: #a66300;
 
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI',
-    Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Roboto Mono', Menlo,
+    Consolas, monospace;
 
-  --radius-card: 1.125rem;
-
-  --animate-shimmer: shimmer 1.8s linear infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-spin-slow: spin 0.9s linear infinite;
 
   @keyframes shimmer {
     0% {
@@ -35,9 +31,9 @@ body {
   width: 400px;
   height: 600px;
   overflow: hidden;
-  background: var(--color-ink);
-  color: #f5f5f7;
-  font-family: var(--font-sans);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -47,29 +43,78 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 3px;
+  background: var(--color-ink);
+  border: 2px solid var(--color-paper);
 }
 
-.glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid var(--color-line);
+/* ---- brutalist primitives ---- */
+
+/* hard-edged card with an offset shadow */
+.brutal {
+  border: 2px solid var(--color-ink);
+  background: var(--color-paper);
+  box-shadow: 4px 4px 0 var(--color-ink);
+}
+.brutal-sm {
+  border: 2px solid var(--color-ink);
+  background: var(--color-paper);
+  box-shadow: 2px 2px 0 var(--color-ink);
+}
+.brutal-flat {
+  border: 2px solid var(--color-ink);
+  background: var(--color-paper);
+}
+
+/* black tile with a white glyph */
+.tile {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  display: grid;
+  place-items: center;
+}
+
+.mono-label {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .shimmer {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.04) 25%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.04) 75%
+    var(--color-wash) 25%,
+    #e6e6e3 50%,
+    var(--color-wash) 75%
   );
   background-size: 200% 100%;
   animation: var(--animate-shimmer);
+}
+
+/* range input, brutalist */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  background: var(--color-ink);
+  border: 0;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--color-paper);
+  border: 2px solid var(--color-ink);
+  box-shadow: 2px 2px 0 var(--color-ink);
+}
+
+select {
+  font-family: var(--font-mono);
 }

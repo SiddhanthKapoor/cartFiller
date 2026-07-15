@@ -104,3 +104,80 @@ export const KeyIcon = (p: IconProps) => (
     <path d="M11.5 10.5L20 2M16 6l3 3" />
   </svg>
 )
+
+// ---------- brand / logo ----------
+
+/** CookCart mark: shopping cart topped with a chef's toque + steam. */
+export const LogoMark = ({ size = 20, ...p }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.6}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...p}
+  >
+    {/* toque */}
+    <path d="M8.4 8.2a2.1 2.1 0 1 1 .9-4 2.4 2.4 0 0 1 4.6 0 2.1 2.1 0 1 1 .9 4v1.6H8.4V8.2z" />
+    {/* cart body */}
+    <path d="M3 6.4h1.7l1.9 7.2a1.1 1.1 0 0 0 1.05.83h6.1a1.1 1.1 0 0 0 1.04-.77L17.9 10" />
+    {/* steam */}
+    <path d="M18.8 4.2c-.5.5-.5 1 0 1.5s.5 1 0 1.5" />
+    {/* wheels */}
+    <circle cx="9" cy="18.4" r="1.15" />
+    <circle cx="15" cy="18.4" r="1.15" />
+  </svg>
+)
+
+// ---------- AI provider glyphs (simple, trademark-light marks) ----------
+
+export const BrandGemini = ({ size = 16, ...p }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" {...p}>
+    <path d="M12 2c.4 4.6 3.4 7.6 8 8-4.6.4-7.6 3.4-8 8-.4-4.6-3.4-7.6-8-8 4.6-.4 7.6-3.4 8-8z" />
+  </svg>
+)
+
+export const BrandClaude = ({ size = 16, ...p }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" {...p}>
+    <path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4" />
+  </svg>
+)
+
+export const BrandOpenAI = ({ size = 16, ...p }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinejoin="round" {...p}>
+    <path d="M12 4.2 6.5 7.4v6.4L12 17l5.5-3.2V7.4L12 4.2z" />
+    <path d="M12 10.6 6.7 7.5M12 10.6l5.3-3.1M12 10.6V17" />
+  </svg>
+)
+
+export const BrandGroq = ({ size = 16, ...p }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} {...p}>
+    <circle cx="12" cy="12" r="7.5" />
+    <path d="M12 12h5.5" strokeLinecap="round" />
+  </svg>
+)
+
+export const BrandOpenRouter = ({ size = 16, ...p }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" {...p}>
+    <path d="M4 8h9l-2-2m2 2-2 2M20 16h-9l2-2m-2 2 2 2" />
+  </svg>
+)
+
+export const EyeIcon = ({ size = 16, open = true, ...p }: IconProps & { open?: boolean }) => (
+  <svg {...base({ size, ...p })}>
+    {open ? (
+      <>
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+        <circle cx="12" cy="12" r="2.5" />
+      </>
+    ) : (
+      <>
+        <path d="M4 4l16 16" />
+        <path d="M9.5 5.4A9.6 9.6 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.2 6.7A17 17 0 0 0 2 12s3.5 7 10 7a9.3 9.3 0 0 0 3.4-.6" />
+      </>
+    )}
+  </svg>
+)

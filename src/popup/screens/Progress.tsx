@@ -9,16 +9,12 @@ const FINISHED = new Set(['added', 'skipped', 'failed'])
 function StatusIcon({ status }: { status: string }) {
   if (status === 'running')
     return (
-      <motion.span
-        animate={{ rotate: 360 }}
-        transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
-        className="h-3.5 w-3.5 rounded-full border-2 border-accent/25 border-t-accent"
-      />
+      <span className="animate-spin-slow h-3.5 w-3.5 rounded-full border-2 border-ink/25 border-t-ink" />
     )
-  if (status === 'added') return <CheckIcon size={13} className="text-accent" />
-  if (status === 'skipped') return <MinusIcon size={13} className="text-warn" />
-  if (status === 'failed') return <XIcon size={13} className="text-danger" />
-  return <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
+  if (status === 'added') return <CheckIcon size={14} className="text-ink" />
+  if (status === 'skipped') return <MinusIcon size={14} className="text-warn" />
+  if (status === 'failed') return <XIcon size={14} className="text-danger" />
+  return <span className="h-1.5 w-1.5 bg-ink/25" />
 }
 
 export function ProgressScreen({
@@ -38,57 +34,53 @@ export function ProgressScreen({
 
   return (
     <Screen>
-      <div className="px-5 pt-6 pb-4">
-        <p className="flex items-center gap-1.5 text-[11px] font-medium tracking-wide text-mist uppercase">
-          <span className="h-1.5 w-1.5 rounded-full" style={{ background: provider.accent }} />
-          {finished
-            ? job.status === 'done'
-              ? `${provider.label} cart filled`
-              : 'Stopped'
-            : `Filling ${provider.label} cart`}
+      <div className="border-b-2 border-ink px-5 pt-5 pb-4">
+        <p className="mono-label flex items-center gap-1.5 text-[11px] text-ink">
+          <span className="tile grid h-4 w-4 place-items-center text-[8px] font-bold">
+            {provider.label[0]}
+          </span>
+          {finished ? (job.status === 'done' ? `${provider.label} · Cart Filled` : 'Stopped') : `Filling ${provider.label}`}
         </p>
-        <h2 className="mt-1 text-[19px] font-semibold tracking-tight">{job.dish}</h2>
+        <h2 className="mono-label mt-1.5 text-[20px]">{job.dish}</h2>
 
         {/* progress bar */}
-        <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/8">
+        <div className="mt-4 h-3 border-2 border-ink">
           <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-[#34db66] to-[#22b14c]"
+            className="h-full bg-ink"
             animate={{ width: `${total === 0 ? 0 : (doneCount / total) * 100}%` }}
             transition={{ type: 'spring', stiffness: 120, damping: 24 }}
           />
         </div>
-        <p className="mt-2 text-[12px] text-mist tabular-nums">
+        <p className="mono-label mt-2 text-[11px] tabular-nums text-mute">
           {finished ? (
             <>
-              {addedCount} added
-              {doneCount - addedCount > 0 && <> · {doneCount - addedCount} skipped</>}
+              {addedCount} Added
+              {doneCount - addedCount > 0 && ` · ${doneCount - addedCount} Skipped`}
             </>
           ) : (
-            <>
-              {doneCount} / {total}
-            </>
+            `${doneCount} / ${total}`
           )}
         </p>
       </div>
 
-      <div className="flex-1 space-y-1 overflow-y-auto px-5">
+      <div className="flex-1 overflow-y-auto px-5 py-3">
         {job.items.map((item, index) => (
           <motion.div
             key={index}
             layout
-            className={`flex items-center gap-2.5 rounded-xl px-3 py-2 ${
-              item.status === 'running' ? 'bg-accent-dim' : ''
-            }`}
+            className={`flex items-center gap-2.5 border-2 px-3 py-2 ${
+              item.status === 'running' ? 'border-ink bg-wash' : 'border-transparent'
+            } ${index > 0 ? '-mt-[2px]' : ''}`}
           >
             <span className="grid w-4 flex-none place-items-center">
               <StatusIcon status={item.status} />
             </span>
             <div className="min-w-0 flex-1">
-              <span className="block truncate text-[12.5px] text-white/90">
+              <span className="mono-label block truncate text-[12px] text-ink">
                 {item.ingredient.name}
               </span>
               {item.matched && item.status === 'added' && (
-                <span className="block truncate text-[11px] text-mist-dim">
+                <span className="block truncate text-[10.5px] text-mute">
                   {item.matched.name}
                   {item.matched.unitsAdded > 1 && ` ×${item.matched.unitsAdded}`}
                   {item.matched.priceInr !== null &&
@@ -96,25 +88,25 @@ export function ProgressScreen({
                 </span>
               )}
               {item.error && item.status !== 'added' && (
-                <span className="block truncate text-[11px] text-mist-dim">{item.error}</span>
+                <span className="block truncate text-[10.5px] text-mute">{item.error}</span>
               )}
             </div>
           </motion.div>
         ))}
       </div>
 
-      <div className="border-t border-line px-5 pt-3 pb-4">
+      <div className="border-t-2 border-ink px-5 pt-3.5 pb-4">
         {finished ? (
           <>
             {job.status === 'done' && (
-              <p className="mb-3 text-center text-[11.5px] leading-relaxed text-mist">
+              <p className="mb-3 text-center text-[11px] leading-relaxed text-mute">
                 Review the cart in the {provider.label} tab before checkout.
               </p>
             )}
-            <PrimaryButton onClick={onDone}>Plan another dish</PrimaryButton>
+            <PrimaryButton onClick={onDone}>Plan Another Dish</PrimaryButton>
           </>
         ) : (
-          <GhostButton onClick={onCancel}>Stop filling</GhostButton>
+          <GhostButton onClick={onCancel}>Stop Filling</GhostButton>
         )}
       </div>
     </Screen>
