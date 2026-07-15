@@ -132,6 +132,8 @@ const PROCESSED_TOKENS = new Set([
   'extract',
   'canned',
   'tinned',
+  'seeds', // "coriander seeds" when the recipe wants fresh coriander leaves
+  'seed',
   'dip',
   'pickle',
   'achar',

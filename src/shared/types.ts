@@ -125,7 +125,7 @@ export interface FillJob {
   lastProgressAt: number
   /** 'fast' = one-shot cart write (Blinkit); 'stepwise' = DOM per item */
   mode: 'fast' | 'stepwise'
-  /** fast mode: whether RUN_ALL has already been sent to the tab */
+  /** fast mode: whether the fill command has already been sent to the tab */
   dispatched?: boolean
 }
 

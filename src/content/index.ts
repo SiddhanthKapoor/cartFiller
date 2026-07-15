@@ -23,6 +23,16 @@ function cancelJob(): void {
   removeOverlay()
 }
 
+/** Report a fast fill, then reload so the store app hydrates the new cart. */
+async function finishFastFill(jobId: string, results: FastItemResult[]): Promise<void> {
+  await send({ type: 'FILL_DONE', jobId, results })
+  if (results.some((r) => r.status === 'added')) {
+    setTimeout(() => location.reload(), 250)
+  } else {
+    busy = false
+  }
+}
+
 async function handleCommand(command: ContentCommand | undefined): Promise<void> {
   if (!command) return
 
@@ -58,15 +68,7 @@ async function handleCommand(command: ContentCommand | undefined): Promise<void>
           results = skipAll('Fill failed')
         }
       }
-
-      await send({ type: 'FILL_DONE', jobId: command.jobId, results })
-      // Reload so the app hydrates the cart we just wrote (unless nothing
-      // landed — then leave the page as-is and let the popup show why).
-      if (results.some((r) => r.status === 'added')) {
-        setTimeout(() => location.reload(), 250)
-      } else {
-        busy = false
-      }
+      await finishFastFill(command.jobId, results)
       return
     }
 

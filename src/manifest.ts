@@ -25,6 +25,7 @@ export default defineManifest({
       matches: [
         'https://blinkit.com/*',
         'https://www.zeptonow.com/*',
+        'https://www.zepto.com/*',
         'https://www.swiggy.com/instamart*',
         'https://www.swiggy.com/instamart/*',
       ],
@@ -36,6 +37,7 @@ export default defineManifest({
   host_permissions: [
     'https://blinkit.com/*',
     'https://www.zeptonow.com/*',
+    'https://www.zepto.com/*',
     'https://www.swiggy.com/*',
     'https://generativelanguage.googleapis.com/*',
     'https://api.anthropic.com/*',

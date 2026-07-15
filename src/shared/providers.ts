@@ -29,8 +29,8 @@ export const PROVIDER_URLS: Record<ProviderId, ProviderUrls> = {
     searchUrl: (q) => `https://www.zeptonow.com/search?query=${encodeURIComponent(q)}`,
     cartHint: 'Open the cart from the top-right of Zepto to check out.',
     isSearchPage: (url) =>
-      url.hostname === 'www.zeptonow.com' && url.pathname.startsWith('/search'),
-    matches: (url) => url.hostname === 'www.zeptonow.com',
+      /^www\.zepto(now)?\.com$/.test(url.hostname) && url.pathname.startsWith('/search'),
+    matches: (url) => /^www\.zepto(now)?\.com$/.test(url.hostname),
   },
   instamart: {
     id: 'instamart',

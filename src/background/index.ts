@@ -77,6 +77,8 @@ async function startFill(
   }
   if (tabId === undefined) return { ok: false, reason: 'Could not open the store tab' }
 
+  // Only Blinkit supports the instant one-shot fill (open, unsigned search
+  // API). Zepto/Instamart sign their requests, so they use the DOM flow.
   const mode: FillJob['mode'] = provider === 'blinkit' ? 'fast' : 'stepwise'
   const job: FillJob = {
     id: crypto.randomUUID(),
@@ -93,8 +95,7 @@ async function startFill(
   await publish(job)
 
   if (mode === 'fast') {
-    // One-shot: tell the (possibly already-loaded) content script to fill
-    // everything at once. If it isn't listening yet it'll ask on READY.
+    // Blinkit: same-origin search, so the content script does it all.
     dispatchRunAll(job)
   } else {
     await chrome.alarms.create(WATCHDOG_ALARM, { periodInMinutes: 0.5 })
@@ -159,7 +160,7 @@ async function commandForTab(tabId: number | undefined): Promise<ContentCommand>
   // page after writing the cart, and re-announces here — by then it's done).
   if (job.mode === 'fast') {
     if (!job.dispatched) await dispatchRunAll(job)
-    return job.dispatched ? runAllCommand(job) : { type: 'IDLE' }
+    return runAllCommand(job)
   }
   return runCommand(job)
 }
