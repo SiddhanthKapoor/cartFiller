@@ -212,18 +212,18 @@ export function ReviewScreen({
 
       {/* summary bar */}
       <div className="mx-5 mt-3 flex divide-x-2 divide-ink border-2 border-ink">
-        <div className="flex-1 px-3 py-2">
+        <div className="flex-1 bg-sky-soft px-3 py-2">
           <div className="mono-label text-[14px] tabular-nums">{activeCount}</div>
           <div className="text-[9px] text-mute uppercase">Items</div>
         </div>
         {list.estimatedCostInr > 0 && (
-          <div className="flex-1 px-3 py-2">
+          <div className="flex-1 bg-lime-soft px-3 py-2">
             <div className="mono-label text-[14px] tabular-nums">₹{list.estimatedCostInr}</div>
             <div className="text-[9px] text-mute uppercase">Est. Cost</div>
           </div>
         )}
         {list.nutrition && (
-          <div className="flex-1 px-3 py-2">
+          <div className="flex-1 bg-sun-soft px-3 py-2">
             <div className="mono-label text-[14px] tabular-nums">
               ~{Math.round(list.nutrition.caloriesPerServing)}
             </div>

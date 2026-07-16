@@ -109,9 +109,9 @@ async function startFill(
     }
   }
 
-  if (mode === 'stepwise') {
-    await chrome.alarms.create(WATCHDOG_ALARM, { periodInMinutes: 0.5 })
-  }
+  // Both modes get the watchdog: it recovers a fill that never ran because
+  // the tab's content script was orphaned by an extension reload.
+  await chrome.alarms.create(WATCHDOG_ALARM, { periodInMinutes: 0.5 })
   return { ok: true }
 }
 
@@ -308,6 +308,8 @@ async function reloadTabAt(job: FillJob, query: string): Promise<void> {
   }
 }
 
+const FAST_TIMEOUT_MS = 22_000
+
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name !== WATCHDOG_ALARM) return
   void (async () => {
@@ -316,6 +318,36 @@ chrome.alarms.onAlarm.addListener((alarm) => {
       await chrome.alarms.clear(WATCHDOG_ALARM)
       return
     }
+
+    // ---- fast mode (Blinkit) ----
+    // A fast fill finishes in a few seconds. If it hasn't, the content
+    // script never ran the command (orphaned by an extension reload, or a
+    // handshake race). Reload the tab — that injects a FRESH content script,
+    // which re-announces and gets RUN_ALL — and retry a couple of times.
+    if (job.mode === 'fast') {
+      if (Date.now() - job.lastProgressAt < FAST_TIMEOUT_MS) return
+      const retries = job.fastRetries ?? 0
+      if (retries < 3) {
+        job.fastRetries = retries + 1
+        job.dispatched = false
+        job.lastProgressAt = Date.now()
+        await setActiveJob(job)
+        await reloadTabAt(job, job.items[0].searchQuery)
+      } else {
+        job.items.forEach((it) => {
+          if (it.status === 'pending' || it.status === 'running') {
+            it.status = 'skipped'
+            it.error = 'Could not reach the store — open it and set a delivery location'
+          }
+        })
+        job.status = 'done'
+        await publish(job)
+        await chrome.alarms.clear(WATCHDOG_ALARM)
+      }
+      return
+    }
+
+    // ---- step-wise mode ----
     if (Date.now() - job.lastProgressAt < ITEM_TIMEOUT_MS) return
 
     const item = job.items[job.currentIndex]

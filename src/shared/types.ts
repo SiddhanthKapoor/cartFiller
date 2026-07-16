@@ -127,6 +127,8 @@ export interface FillJob {
   mode: 'fast' | 'stepwise'
   /** fast mode: whether the fill command has already been sent to the tab */
   dispatched?: boolean
+  /** fast mode: how many times the watchdog has reloaded + retried the fill */
+  fastRetries?: number
 }
 
 // ---------- Settings ----------

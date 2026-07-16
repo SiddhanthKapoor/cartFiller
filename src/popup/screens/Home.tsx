@@ -25,12 +25,14 @@ const SUGGESTIONS = [
 
 const TIP_KEY = 'cookcart.tipDismissed'
 
-const CHIP_HOVER = [
-  'hover:bg-accent hover:text-paper',
-  'hover:bg-lime hover:text-paper',
-  'hover:bg-sun',
-  'hover:bg-berry hover:text-paper',
+const CHIP_COLORS = [
+  'bg-sun-soft hover:bg-sun',
+  'bg-sky-soft hover:bg-sky hover:text-paper',
+  'bg-lime-soft hover:bg-lime hover:text-paper',
+  'bg-accent-soft hover:bg-accent hover:text-paper',
 ]
+
+const CARD_STRIPE = ['bg-accent', 'bg-sky', 'bg-lime', 'bg-berry', 'bg-sun']
 
 /** One-time reminder: the fill runs on your own logged-in store session. */
 function OnboardingTip() {
@@ -236,7 +238,7 @@ export function HomeScreen({
                       if (hasKey) submit(s)
                     }}
                     style={{ boxShadow: '2px 2px 0 #1c1917' }}
-                    className={`border-2 border-ink px-2.5 py-1 text-[11px] text-ink transition-colors ${CHIP_HOVER[i % CHIP_HOVER.length]}`}
+                    className={`border-2 border-ink px-2.5 py-1 text-[11px] text-ink transition-colors ${CHIP_COLORS[i % CHIP_COLORS.length]}`}
                   >
                     {s}
                   </button>
@@ -250,13 +252,15 @@ export function HomeScreen({
                     {favorites.length > 0 ? 'Saved & Recent' : 'Recent'}
                   </div>
                   <div className="space-y-2">
-                    {[...favorites, ...recents].map((meal) => (
+                    {[...favorites, ...recents].map((meal, i) => (
                       <motion.div
                         key={meal.list.id}
                         layout
-                        className="brutal-sm group flex items-center gap-1 py-1 pr-1 pl-3"
+                        style={{ boxShadow: '3px 3px 0 #1c1917' }}
+                        className="group flex items-stretch border-2 border-ink bg-paper"
                       >
-                        <button onClick={() => onOpenMeal(meal.list)} className="flex-1 py-1.5 text-left">
+                        <span className={`w-2 flex-none ${CARD_STRIPE[i % CARD_STRIPE.length]}`} />
+                        <button onClick={() => onOpenMeal(meal.list)} className="flex-1 py-1.5 pl-2.5 text-left">
                           <span className="block truncate text-[12.5px] font-semibold text-ink">
                             {meal.list.dish}
                           </span>
@@ -265,20 +269,20 @@ export function HomeScreen({
                             {meal.list.estimatedCostInr > 0 && ` · ~₹${meal.list.estimatedCostInr}`}
                           </span>
                         </button>
-                        <IconButton
+                        <button
                           onClick={() => onToggleFavorite(meal.list.id)}
                           aria-label="Favorite"
-                          className={`h-7 w-7 ${meal.favorite ? 'bg-ink text-paper' : ''}`}
+                          className={`my-1 grid w-8 place-items-center border-l-2 border-ink ${meal.favorite ? 'bg-sun text-ink' : 'hover:bg-sun-soft'}`}
                         >
                           <StarIcon size={13} filled={meal.favorite} />
-                        </IconButton>
-                        <IconButton
+                        </button>
+                        <button
                           onClick={() => onDeleteMeal(meal.list.id)}
                           aria-label="Delete"
-                          className="h-7 w-7 hover:bg-danger hover:text-paper"
+                          className="my-1 grid w-8 place-items-center border-l-2 border-ink hover:bg-danger hover:text-paper"
                         >
                           <TrashIcon size={13} />
-                        </IconButton>
+                        </button>
                       </motion.div>
                     ))}
                   </div>
