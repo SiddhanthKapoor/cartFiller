@@ -1,9 +1,24 @@
 import type { OverlayState } from '@/shared/messages'
+import type { ProviderId } from '@/shared/types'
+import blinkitLogo from '@/popup/assets/brands/blinkit.svg?raw'
+import zeptoLogo from '@/popup/assets/brands/zepto.svg?raw'
+import swiggyLogo from '@/popup/assets/brands/swiggy.svg?raw'
 
 /**
  * Floating progress card rendered into a shadow root so the host page's
  * styles can't touch it (and vice versa).
  */
+
+const STORE_LOGO: Record<ProviderId, string> = {
+  blinkit: blinkitLogo,
+  zepto: zeptoLogo,
+  instamart: swiggyLogo,
+}
+const STORE_ACCENT: Record<ProviderId, string> = {
+  blinkit: '#F8CB46',
+  zepto: '#950EDB',
+  instamart: '#FC8019',
+}
 
 let host: HTMLDivElement | null = null
 let shadow: ShadowRoot | null = null
@@ -54,7 +69,7 @@ const STYLES = `
   .bar {
     height: 10px; margin: 2px 14px 0; border: 2px solid #0a0a0a; overflow: hidden;
   }
-  .bar-fill { height: 100%; background: #ff5a1f; transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+  .bar-fill { height: 100%; background: #0a0a0a; transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
   .items { padding: 10px 10px 12px; overflow-y: auto; }
   .items::-webkit-scrollbar { width: 6px; }
   .items::-webkit-scrollbar-thumb { background: #0a0a0a; }
@@ -64,11 +79,11 @@ const STYLES = `
     text-transform: uppercase; letter-spacing: 0.03em; color: #0a0a0a;
     border: 2px solid transparent; margin-bottom: 2px;
   }
-  .item.running { border-color: #0a0a0a; background: #ffe9df; }
+  .item.running { border-color: #0a0a0a; }
   .icon { width: 16px; height: 16px; flex: none; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
   .icon.pending { color: #c8c8c8; }
   .icon.added { color: #0a0a0a; }
-  .icon.skipped { color: #b45309; }
+  .icon.skipped { color: #9a9a9a; }
   .icon.failed { color: #c81e1e; }
   .spinner {
     width: 13px; height: 13px; border-radius: 50%;
@@ -114,11 +129,22 @@ export function renderOverlay(state: OverlayState, onCancel: () => void): void {
   const card = document.createElement('div')
   card.className = 'card'
 
+  const accent = STORE_ACCENT[state.provider]
+
   const head = document.createElement('div')
   head.className = 'head'
   const logo = document.createElement('div')
   logo.className = 'logo'
-  logo.textContent = '🛒'
+  // real store logo, on a white chip so brand colours read
+  logo.style.background = '#fff'
+  logo.innerHTML = STORE_LOGO[state.provider] ?? ''
+  const svg = logo.querySelector('svg')
+  if (svg) {
+    svg.setAttribute('width', '20')
+    svg.setAttribute('height', '20')
+    svg.style.maxWidth = '20px'
+    svg.style.maxHeight = '20px'
+  }
   const titles = document.createElement('div')
   const title = document.createElement('div')
   title.className = 'title'
@@ -145,6 +171,7 @@ export function renderOverlay(state: OverlayState, onCancel: () => void): void {
   bar.className = 'bar'
   const fill = document.createElement('div')
   fill.className = 'bar-fill'
+  fill.style.background = accent
   fill.style.width = `${total === 0 ? 0 : Math.round((doneCount / total) * 100)}%`
   bar.appendChild(fill)
   card.appendChild(bar)
@@ -157,8 +184,10 @@ export function renderOverlay(state: OverlayState, onCancel: () => void): void {
     const icon = document.createElement('span')
     icon.className = `icon ${item.status}`
     if (item.status === 'running') {
+      row.style.background = `${accent}22`
       const spinner = document.createElement('span')
       spinner.className = 'spinner'
+      spinner.style.borderTopColor = accent
       icon.appendChild(spinner)
     } else {
       icon.textContent = STATUS_ICON[item.status] ?? '○'

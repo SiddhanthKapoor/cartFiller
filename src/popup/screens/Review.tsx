@@ -6,6 +6,9 @@ import { formatQuantity, quantityStep, scaleQuantity } from '@/shared/units'
 import { normalizeIngredient } from '@/shared/normalize'
 import { IconButton, Screen, Toggle } from '../components/ui'
 import { STORE_LOGO } from '../assets/brands'
+
+// Blinkit is the fast, reliable path; Zepto second. (Instamart omitted for now.)
+const FILL_STORES = [PROVIDERS.blinkit, PROVIDERS.zepto]
 import {
   CartIcon,
   CheckIcon,
@@ -59,7 +62,9 @@ function IngredientRow({
       transition={{ type: 'spring', stiffness: 500, damping: 38 }}
       className="group -mt-[2px] flex items-stretch border-2 border-ink"
     >
-      <span className="tile w-9 flex-none border-r-2 border-ink text-[13px]">🛒</span>
+      <span className="tile w-9 flex-none border-r-2 border-ink">
+        <CartIcon size={14} />
+      </span>
       <div className="min-w-0 flex-1 px-2.5 py-1.5">
         {editing ? (
           <input
@@ -306,20 +311,26 @@ export function ReviewScreen({
             hint="Skip salt, oil and everyday spices"
           />
         </div>
-        <div className="mt-3 grid grid-cols-3 gap-2">
-          {Object.values(PROVIDERS).map((provider) => (
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          {FILL_STORES.map((provider) => (
             <motion.button
               key={provider.id}
-              whileHover={{ x: -1, y: -1, boxShadow: '4px 4px 0 #ff5a1f' }}
+              initial={false}
+              whileHover={{ backgroundColor: provider.accent, x: -1, y: -1, boxShadow: '4px 4px 0 #0a0a0a' }}
               whileTap={{ x: 1, y: 1, boxShadow: '0 0 0 #0a0a0a' }}
-              transition={{ type: 'spring', stiffness: 600, damping: 30 }}
+              transition={{ duration: 0.12 }}
               style={{ boxShadow: '2px 2px 0 #0a0a0a' }}
               disabled={fillBusy || activeCount === 0}
               onClick={() => onFill(provider.id)}
-              className="flex flex-col items-center gap-1.5 border-2 border-ink bg-paper px-1.5 py-2.5 text-center disabled:opacity-40"
+              className="relative flex flex-col items-center gap-1.5 border-2 border-ink bg-paper px-1.5 py-3 text-center disabled:opacity-40"
             >
-              <img src={STORE_LOGO[provider.id]} alt={provider.label} className="h-4 max-w-full object-contain" />
-              <span className="flex items-center gap-1 text-[9px] font-bold text-accent uppercase">
+              {provider.id === 'blinkit' && (
+                <span className="tile absolute top-0 right-0 px-1.5 py-0.5 text-[8px] font-bold tracking-wider">
+                  QUICKEST
+                </span>
+              )}
+              <img src={STORE_LOGO[provider.id]} alt={provider.label} className="h-5 max-w-full object-contain" />
+              <span className="flex items-center gap-1 text-[9px] font-bold text-ink uppercase">
                 Fill Cart <CartIcon size={9} />
               </span>
             </motion.button>

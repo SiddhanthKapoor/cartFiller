@@ -6,7 +6,15 @@ import { activeApiKey } from '@/shared/types'
 import { generateShoppingList, AiError } from '@/ai/client'
 import { Screen, IconButton } from '../components/ui'
 import { CookingLoader } from '../components/CookingLoader'
-import { ArrowUpIcon, GearIcon, KeyIcon, LogoMark, StarIcon, TrashIcon } from '../components/icons'
+import {
+  ArrowUpIcon,
+  CartIcon,
+  GearIcon,
+  KeyIcon,
+  LogoMark,
+  StarIcon,
+  TrashIcon,
+} from '../components/icons'
 
 const SUGGESTIONS = [
   'Chicken Biryani',
@@ -32,7 +40,9 @@ function OnboardingTip() {
     >
       <div className="brutal-flat px-3.5 py-3">
         <div className="flex items-start gap-3">
-          <span className="tile mt-0.5 h-6 w-6 flex-none text-[12px]">🛒</span>
+          <span className="tile mt-0.5 h-6 w-6 flex-none">
+            <CartIcon size={13} />
+          </span>
           <div className="flex-1">
             <p className="text-[11.5px] leading-relaxed text-ink">
               Open your store (Blinkit / Zepto / Instamart), be{' '}
@@ -147,7 +157,7 @@ export function HomeScreen({
             onClick={() => submit(query)}
             disabled={!query.trim() || generate.isPending}
             aria-label="Generate"
-            className="grid w-12 flex-none place-items-center border-l-2 border-ink bg-accent text-paper disabled:bg-mute-soft"
+            className="tile grid w-12 flex-none place-items-center border-l-2 border-ink disabled:opacity-30"
           >
             {generate.isPending ? (
               <span className="animate-spin-slow h-4 w-4 rounded-full border-2 border-paper/40 border-t-paper" />

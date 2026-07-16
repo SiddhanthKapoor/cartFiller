@@ -12,7 +12,7 @@ function StatusIcon({ status }: { status: string }) {
       <span className="animate-spin-slow h-3.5 w-3.5 rounded-full border-2 border-ink/25 border-t-ink" />
     )
   if (status === 'added') return <CheckIcon size={14} className="text-ink" />
-  if (status === 'skipped') return <MinusIcon size={14} className="text-warn" />
+  if (status === 'skipped') return <MinusIcon size={14} className="text-mute-soft" />
   if (status === 'failed') return <XIcon size={14} className="text-danger" />
   return <span className="h-1.5 w-1.5 bg-ink/25" />
 }
@@ -46,7 +46,8 @@ export function ProgressScreen({
         {/* progress bar */}
         <div className="mt-4 h-3 border-2 border-ink">
           <motion.div
-            className="h-full bg-ink"
+            className="h-full"
+            style={{ background: provider.accent }}
             animate={{ width: `${total === 0 ? 0 : (doneCount / total) * 100}%` }}
             transition={{ type: 'spring', stiffness: 120, damping: 24 }}
           />
