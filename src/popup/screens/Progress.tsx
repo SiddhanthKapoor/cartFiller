@@ -9,7 +9,7 @@ const FINISHED = new Set(['added', 'skipped', 'failed'])
 function StatusIcon({ status }: { status: string }) {
   if (status === 'running')
     return (
-      <span className="animate-spin-slow h-3.5 w-3.5 rounded-full border-2 border-ink/25 border-t-ink" />
+      <span className="animate-spin-slow h-3.5 w-3.5 rounded-full border-2 border-line/25 border-t-ink" />
     )
   if (status === 'added') return <CheckIcon size={14} className="text-lime" />
   if (status === 'skipped') return <MinusIcon size={14} className="text-mute-soft" />
@@ -34,7 +34,7 @@ export function ProgressScreen({
 
   return (
     <Screen>
-      <div className="border-b-2 border-ink px-5 pt-5 pb-4">
+      <div className="border-b-2 border-line px-5 pt-5 pb-4">
         <p className="mono-label flex items-center gap-1.5 text-[11px] text-ink">
           <span className="tile grid h-4 w-4 place-items-center text-[8px] font-bold">
             {provider.label[0]}
@@ -44,7 +44,7 @@ export function ProgressScreen({
         <h2 className="mono-label mt-1.5 text-[20px]">{job.dish}</h2>
 
         {/* progress bar */}
-        <div className="mt-4 h-3 border-2 border-ink">
+        <div className="mt-4 h-3 border-2 border-line">
           <motion.div
             className="h-full"
             style={{ background: provider.accent }}
@@ -70,7 +70,7 @@ export function ProgressScreen({
             key={index}
             layout
             className={`flex items-center gap-2.5 border-2 px-3 py-2 ${
-              item.status === 'running' ? 'border-ink bg-wash' : 'border-transparent'
+              item.status === 'running' ? 'border-line bg-wash' : 'border-transparent'
             } ${index > 0 ? '-mt-[2px]' : ''}`}
           >
             <span className="grid w-4 flex-none place-items-center">
@@ -96,7 +96,7 @@ export function ProgressScreen({
         ))}
       </div>
 
-      <div className="border-t-2 border-ink px-5 pt-3.5 pb-4">
+      <div className="border-t-2 border-line px-5 pt-3.5 pb-4">
         {finished ? (
           <>
             {job.status === 'done' && (

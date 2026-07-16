@@ -15,7 +15,7 @@ function GeminiKeyHelp() {
         onClick={() => setOpen(!open)}
         className="mono-label flex items-center gap-1.5 text-[11px] text-ink underline"
       >
-        <span className="grid h-4 w-4 place-items-center border-2 border-ink text-[9px]">?</span>
+        <span className="grid h-4 w-4 place-items-center border-2 border-line text-[9px]">?</span>
         How do I get a free key?
       </button>
       <AnimatePresence>
@@ -24,7 +24,7 @@ function GeminiKeyHelp() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-2 space-y-1.5 overflow-hidden border-2 border-ink px-3.5 py-3 text-[11px] leading-relaxed text-mute"
+            className="mt-2 space-y-1.5 overflow-hidden border-2 border-line px-3.5 py-3 text-[11px] leading-relaxed text-mute"
           >
             <li>
               1. Open{' '}
@@ -96,7 +96,7 @@ export function SettingsScreen({
 
   return (
     <Screen>
-      <div className="flex items-center gap-2.5 border-b-2 border-ink px-4 py-3.5">
+      <div className="flex items-center gap-2.5 border-b-2 border-line px-4 py-3.5">
         <IconButton onClick={onBack} aria-label="Back">
           <ChevronLeftIcon size={16} />
         </IconButton>
@@ -115,8 +115,8 @@ export function SettingsScreen({
                 <button
                   key={p.key}
                   onClick={() => selectProvider(p.key)}
-                  style={{ boxShadow: active ? '3px 3px 0 #ff6a4d' : '2px 2px 0 #2b2733' }}
-                  className={`relative flex items-center gap-1.5 border-2 border-ink px-2 py-2 text-[10.5px] transition-colors ${
+                  style={{ boxShadow: active ? '3px 3px 0 #219ebd' : '2px 2px 0 #000000' }}
+                  className={`relative flex items-center gap-1.5 border-2 border-line px-2 py-2 text-[10.5px] transition-colors ${
                     active ? 'bg-accent-soft text-ink' : 'bg-paper text-ink hover:bg-wash'
                   }`}
                 >
@@ -168,7 +168,7 @@ export function SettingsScreen({
             <button
               onClick={() => setShowKey(!showKey)}
               aria-label={showKey ? 'Hide key' : 'Show key'}
-              className="absolute top-0 right-0 grid h-11 w-11 place-items-center border-l-2 border-ink hover:bg-wash"
+              className="absolute top-0 right-0 grid h-11 w-11 place-items-center border-l-2 border-line hover:bg-wash"
             >
               <EyeIcon size={15} open={showKey} />
             </button>
@@ -200,7 +200,7 @@ export function SettingsScreen({
         </div>
       </div>
 
-      <div className="border-t-2 border-ink px-5 pt-3.5 pb-4">
+      <div className="border-t-2 border-line px-5 pt-3.5 pb-4">
         <PrimaryButton onClick={save}>{saved ? 'Saved ✓' : 'Save Settings'}</PrimaryButton>
       </div>
     </Screen>

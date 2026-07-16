@@ -17,20 +17,20 @@ export function CookingLoader() {
               <path d="M12 22h94v20a20 20 0 0 1-20 20H32a20 20 0 0 1-20-20V22z" />
             </clipPath>
             <g clipPath="url(#pot)">
-              <rect x="12" y="22" width="94" height="40" fill="#ff6a4d" opacity="0.18" />
-              <circle className="animate-bubble" cx="40" cy="30" r="3.5" fill="#ff6a4d" />
+              <rect x="12" y="22" width="94" height="40" fill="#219ebd" opacity="0.18" />
+              <circle className="animate-bubble" cx="40" cy="30" r="3.5" fill="#219ebd" />
               <circle className="animate-bubble" cx="62" cy="27" r="4" fill="#2fbf71" style={{ animationDelay: '0.4s' }} />
               <circle className="animate-bubble" cx="80" cy="31" r="3" fill="#f8cb46" style={{ animationDelay: '0.8s' }} />
               <circle className="animate-bubble" cx="52" cy="33" r="2.5" fill="#7c2ff0" style={{ animationDelay: '1.1s' }} />
             </g>
             <path
               d="M8 22h102M12 22v20a20 20 0 0 0 20 20h54a20 20 0 0 0 20-20V22"
-              stroke="#2b2733"
+              stroke="#000000"
               strokeWidth="3.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <path d="M8 26c-5 0-5 8 0 8M110 26c5 0 5 8 0 8" stroke="#2b2733" strokeWidth="3.5" strokeLinecap="round" />
+            <path d="M8 26c-5 0-5 8 0 8M110 26c5 0 5 8 0 8" stroke="#000000" strokeWidth="3.5" strokeLinecap="round" />
           </svg>
         </div>
       </div>

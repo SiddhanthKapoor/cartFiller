@@ -1,26 +1,26 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-ink: #2b2733;
-  --color-paper: #fff9f2;
-  --color-line: #2b2733;
-  --color-mute: #857f90;
-  --color-mute-soft: #b6b1bf;
-  --color-wash: #f4efe8;
-  --color-danger: #f0475b;
-  --color-warn: #f59e0b;
+  /* neobrutalist palette */
+  --color-ink: #013048; /* text — deep navy */
+  --color-paper: #fffadf; /* warm cream background */
+  --color-line: #000000; /* borders — pure black */
+  --color-mute: #5a7787;
+  --color-mute-soft: #9cb0bb;
+  --color-wash: #fdf2c4; /* soft cream tint */
+  --color-danger: #c2121f;
+  --color-warn: #d97706;
 
-  /* cheerful, harmonious palette */
-  --color-accent: #ff6a4d; /* coral — primary */
-  --color-accent-soft: #ffe0d8;
-  --color-lime: #2fbf71; /* green — success */
-  --color-lime-soft: #d2f4e0;
-  --color-sky: #4c9be8; /* blue */
-  --color-sky-soft: #dbebfb;
-  --color-sun: #ffc53d; /* yellow — Blinkit */
-  --color-sun-soft: #fff0c8;
-  --color-berry: #9b5de5; /* purple — Zepto */
-  --color-berry-soft: #ecdffb;
+  --color-accent: #219ebd; /* primary — teal */
+  --color-accent-soft: #cfe9f0;
+  --color-sun: #ffb805; /* yellow accent — Blinkit */
+  --color-sun-soft: #ffe9a3;
+  --color-lime: #17a34a; /* green — success */
+  --color-lime-soft: #c9f0d5;
+  --color-sky: #219ebd;
+  --color-sky-soft: #cfe9f0;
+  --color-berry: #7c3aed; /* purple — Zepto */
+  --color-berry-soft: #e5d8fb;
 
   --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Roboto Mono', Menlo,
     Consolas, monospace;
@@ -74,25 +74,25 @@ body {
   border: 2px solid var(--color-paper);
 }
 
-/* ---- brutalist primitives ---- */
+/* ---- neobrutalist primitives ---- */
 
-/* hard-edged card with an offset shadow */
+/* hard-edged card with a bold black border + offset shadow */
 .brutal {
-  border: 2px solid var(--color-ink);
+  border: 3px solid var(--color-line);
   background: var(--color-paper);
-  box-shadow: 4px 4px 0 var(--color-ink);
+  box-shadow: 5px 5px 0 var(--color-line);
 }
 .brutal-sm {
-  border: 2px solid var(--color-ink);
+  border: 3px solid var(--color-line);
   background: var(--color-paper);
-  box-shadow: 2px 2px 0 var(--color-ink);
+  box-shadow: 3px 3px 0 var(--color-line);
 }
 .brutal-flat {
-  border: 2px solid var(--color-ink);
+  border: 3px solid var(--color-line);
   background: var(--color-paper);
 }
 
-/* black tile with a white glyph */
+/* solid tile with a light glyph */
 .tile {
   background: var(--color-ink);
   color: var(--color-paper);

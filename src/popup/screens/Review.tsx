@@ -60,9 +60,9 @@ function IngredientRow({
       animate={{ opacity: dimmed ? 0.4 : 1, y: 0 }}
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
       transition={{ type: 'spring', stiffness: 500, damping: 38 }}
-      className="group -mt-[2px] flex items-stretch border-2 border-ink"
+      className="group -mt-[2px] flex items-stretch border-2 border-line"
     >
-      <span className="tile w-9 flex-none border-r-2 border-ink">
+      <span className="tile w-9 flex-none border-r-2 border-line">
         <CartIcon size={14} />
       </span>
       <div className="min-w-0 flex-1 px-2.5 py-1.5">
@@ -93,21 +93,21 @@ function IngredientRow({
       <button
         onClick={() => bump(-1)}
         aria-label="Less"
-        className="grid w-8 flex-none place-items-center border-l-2 border-ink hover:bg-wash"
+        className="grid w-8 flex-none place-items-center border-l-2 border-line hover:bg-wash"
       >
         <MinusIcon size={13} />
       </button>
       <button
         onClick={() => bump(1)}
         aria-label="More"
-        className="grid w-8 flex-none place-items-center border-l-2 border-ink hover:bg-wash"
+        className="grid w-8 flex-none place-items-center border-l-2 border-line hover:bg-wash"
       >
         <PlusIcon size={13} />
       </button>
       <button
         onClick={onRemove}
         aria-label="Remove"
-        className="grid w-8 flex-none place-items-center border-l-2 border-ink hover:bg-ink hover:text-paper"
+        className="grid w-8 flex-none place-items-center border-l-2 border-line hover:bg-ink hover:text-paper"
       >
         <XIcon size={13} />
       </button>
@@ -197,7 +197,7 @@ export function ReviewScreen({
   return (
     <Screen>
       {/* header */}
-      <div className="flex items-center gap-2.5 border-b-2 border-ink px-4 py-3">
+      <div className="flex items-center gap-2.5 border-b-2 border-line px-4 py-3">
         <IconButton onClick={onBack} aria-label="Back">
           <ChevronLeftIcon size={16} />
         </IconButton>
@@ -211,7 +211,7 @@ export function ReviewScreen({
       </div>
 
       {/* summary bar */}
-      <div className="mx-5 mt-3 flex divide-x-2 divide-ink border-2 border-ink">
+      <div className="mx-5 mt-3 flex divide-x-2 divide-line border-2 border-line">
         <div className="flex-1 bg-sky-soft px-3 py-2">
           <div className="mono-label text-[14px] tabular-nums">{activeCount}</div>
           <div className="text-[9px] text-mute uppercase">Items</div>
@@ -233,12 +233,12 @@ export function ReviewScreen({
       </div>
 
       {/* servings */}
-      <div className="mx-5 mt-3 flex items-stretch border-2 border-ink">
+      <div className="mx-5 mt-3 flex items-stretch border-2 border-line">
         <span className="mono-label flex-1 px-3 py-2 text-[12px]">Servings</span>
         <button
           onClick={() => setServings(list.servings - 1)}
           aria-label="Fewer servings"
-          className="grid w-10 place-items-center border-l-2 border-ink hover:bg-wash"
+          className="grid w-10 place-items-center border-l-2 border-line hover:bg-wash"
         >
           <MinusIcon size={13} />
         </button>
@@ -246,7 +246,7 @@ export function ReviewScreen({
           key={list.servings}
           initial={{ scale: 1.2 }}
           animate={{ scale: 1 }}
-          className="mono-label grid w-12 place-items-center border-x-2 border-ink text-[15px] tabular-nums"
+          className="mono-label grid w-12 place-items-center border-x-2 border-line text-[15px] tabular-nums"
         >
           {list.servings}
         </motion.span>
@@ -289,7 +289,7 @@ export function ReviewScreen({
         </AnimatePresence>
 
         {/* add item */}
-        <div className="mt-[2px] mb-3 flex items-center gap-2 border-2 border-dashed border-ink px-3 py-1">
+        <div className="mt-[2px] mb-3 flex items-center gap-2 border-2 border-dashed border-line px-3 py-1">
           <PlusIcon size={13} className="flex-none text-mute" />
           <input
             value={newItem}
@@ -302,7 +302,7 @@ export function ReviewScreen({
       </div>
 
       {/* footer */}
-      <div className="border-t-2 border-ink px-5 pt-3 pb-4">
+      <div className="border-t-2 border-line px-5 pt-3 pb-4">
         <div className="brutal-flat px-3.5 py-2.5">
           <Toggle
             checked={settings.skipPantryStaples}
@@ -317,12 +317,12 @@ export function ReviewScreen({
               key={provider.id}
               initial={false}
               whileHover={{ x: -2, y: -2, boxShadow: `6px 6px 0 ${provider.accent}` }}
-              whileTap={{ x: 1, y: 1, boxShadow: '0 0 0 #2b2733' }}
+              whileTap={{ x: 1, y: 1, boxShadow: '0 0 0 #000000' }}
               transition={{ duration: 0.12 }}
-              style={{ boxShadow: '3px 3px 0 #2b2733' }}
+              style={{ boxShadow: '3px 3px 0 #000000' }}
               disabled={fillBusy || activeCount === 0}
               onClick={() => onFill(provider.id)}
-              className="relative flex flex-col items-center gap-1.5 border-2 border-ink bg-paper px-1.5 py-3 text-center disabled:opacity-40"
+              className="relative flex flex-col items-center gap-1.5 border-2 border-line bg-paper px-1.5 py-3 text-center disabled:opacity-40"
             >
               {provider.id === 'blinkit' && (
                 <span className="tile absolute top-0 right-0 px-1.5 py-0.5 text-[8px] font-bold tracking-wider">

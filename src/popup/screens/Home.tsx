@@ -26,13 +26,11 @@ const SUGGESTIONS = [
 const TIP_KEY = 'cookcart.tipDismissed'
 
 const CHIP_COLORS = [
-  'bg-sun-soft hover:bg-sun',
-  'bg-sky-soft hover:bg-sky hover:text-paper',
-  'bg-lime-soft hover:bg-lime hover:text-paper',
   'bg-accent-soft hover:bg-accent hover:text-paper',
+  'bg-sun-soft hover:bg-sun',
 ]
 
-const CARD_STRIPE = ['bg-accent', 'bg-sky', 'bg-lime', 'bg-berry', 'bg-sun']
+const CARD_STRIPE = ['bg-accent', 'bg-sun', 'bg-accent', 'bg-sun']
 
 /** One-time reminder: the fill runs on your own logged-in store session. */
 function OnboardingTip() {
@@ -125,7 +123,7 @@ export function HomeScreen({
   return (
     <Screen>
       {/* header */}
-      <div className="flex items-center gap-2.5 border-b-2 border-ink bg-accent px-5 py-3.5 text-paper">
+      <div className="flex items-center gap-2.5 border-b-2 border-line bg-accent px-5 py-3.5 text-paper">
         <span className="grid h-8 w-8 place-items-center border-2 border-paper">
           <LogoMark size={19} />
         </span>
@@ -170,7 +168,7 @@ export function HomeScreen({
             onClick={() => submit(query)}
             disabled={!query.trim() || generate.isPending}
             aria-label="Generate"
-            className="grid w-12 flex-none place-items-center border-l-2 border-ink bg-accent text-paper disabled:opacity-30"
+            className="grid w-12 flex-none place-items-center border-l-2 border-line bg-accent text-paper disabled:opacity-30"
           >
             {generate.isPending ? (
               <span className="animate-spin-slow h-4 w-4 rounded-full border-2 border-paper/40 border-t-paper" />
@@ -237,8 +235,8 @@ export function HomeScreen({
                       setQuery(s)
                       if (hasKey) submit(s)
                     }}
-                    style={{ boxShadow: '2px 2px 0 #2b2733' }}
-                    className={`border-2 border-ink px-2.5 py-1 text-[11px] text-ink transition-colors ${CHIP_COLORS[i % CHIP_COLORS.length]}`}
+                    style={{ boxShadow: '2px 2px 0 #000000' }}
+                    className={`border-2 border-line px-2.5 py-1 text-[11px] text-ink transition-colors ${CHIP_COLORS[i % CHIP_COLORS.length]}`}
                   >
                     {s}
                   </button>
@@ -256,8 +254,8 @@ export function HomeScreen({
                       <motion.div
                         key={meal.list.id}
                         layout
-                        style={{ boxShadow: '3px 3px 0 #2b2733' }}
-                        className="group flex items-stretch border-2 border-ink bg-paper"
+                        style={{ boxShadow: '3px 3px 0 #000000' }}
+                        className="group flex items-stretch border-2 border-line bg-paper"
                       >
                         <span className={`w-2 flex-none ${CARD_STRIPE[i % CARD_STRIPE.length]}`} />
                         <button onClick={() => onOpenMeal(meal.list)} className="flex-1 py-1.5 pl-2.5 text-left">
@@ -272,14 +270,14 @@ export function HomeScreen({
                         <button
                           onClick={() => onToggleFavorite(meal.list.id)}
                           aria-label="Favorite"
-                          className={`my-1 grid w-8 place-items-center border-l-2 border-ink ${meal.favorite ? 'bg-sun text-ink' : 'hover:bg-sun-soft'}`}
+                          className={`my-1 grid w-8 place-items-center border-l-2 border-line ${meal.favorite ? 'bg-sun text-ink' : 'hover:bg-sun-soft'}`}
                         >
                           <StarIcon size={13} filled={meal.favorite} />
                         </button>
                         <button
                           onClick={() => onDeleteMeal(meal.list.id)}
                           aria-label="Delete"
-                          className="my-1 grid w-8 place-items-center border-l-2 border-ink hover:bg-danger hover:text-paper"
+                          className="my-1 grid w-8 place-items-center border-l-2 border-line hover:bg-danger hover:text-paper"
                         >
                           <TrashIcon size={13} />
                         </button>

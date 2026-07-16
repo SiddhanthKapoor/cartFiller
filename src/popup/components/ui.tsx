@@ -4,8 +4,8 @@ import { motion, type HTMLMotionProps } from 'motion/react'
 type MotionButtonProps = HTMLMotionProps<'button'>
 
 const press = {
-  whileHover: { x: -1, y: -1, boxShadow: '5px 5px 0 #2b2733' },
-  whileTap: { x: 2, y: 2, boxShadow: '0px 0px 0 #2b2733' },
+  whileHover: { x: -1, y: -1, boxShadow: '5px 5px 0 #000000' },
+  whileTap: { x: 2, y: 2, boxShadow: '0px 0px 0 #000000' },
   transition: { type: 'spring' as const, stiffness: 600, damping: 30 },
 }
 
@@ -19,8 +19,8 @@ export function PrimaryButton({
   return (
     <motion.button
       {...press}
-      style={{ boxShadow: '4px 4px 0 #2b2733' }}
-      className={`mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-ink bg-accent text-[13px] text-paper disabled:opacity-40 ${className}`}
+      style={{ boxShadow: '4px 4px 0 #000000' }}
+      className={`mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-line bg-accent text-[13px] text-paper disabled:opacity-40 ${className}`}
       {...props}
     >
       {children}
@@ -36,8 +36,8 @@ export function GhostButton({
   return (
     <motion.button
       {...press}
-      style={{ boxShadow: '4px 4px 0 #2b2733' }}
-      className={`mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-ink bg-paper text-[13px] text-ink disabled:opacity-40 ${className}`}
+      style={{ boxShadow: '4px 4px 0 #000000' }}
+      className={`mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-line bg-paper text-[13px] text-ink disabled:opacity-40 ${className}`}
       {...props}
     >
       {children}
@@ -52,7 +52,7 @@ export function IconButton({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode }) {
   return (
     <button
-      className={`grid h-9 w-9 flex-none place-items-center border-2 border-ink bg-paper text-ink transition-colors hover:bg-ink hover:text-paper ${className}`}
+      className={`grid h-9 w-9 flex-none place-items-center border-2 border-line bg-paper text-ink transition-colors hover:bg-ink hover:text-paper ${className}`}
       {...props}
     >
       {children}
@@ -84,7 +84,7 @@ export function Toggle({
         {hint && <span className="mt-0.5 block text-[11px] text-mute">{hint}</span>}
       </span>
       <span
-        className={`relative h-7 w-12 flex-none border-2 border-ink transition-colors ${
+        className={`relative h-7 w-12 flex-none border-2 border-line transition-colors ${
           checked ? 'bg-ink' : 'bg-paper'
         }`}
       >
@@ -120,7 +120,7 @@ export function Field({
 }
 
 export const inputClass =
-  'h-11 w-full border-2 border-ink bg-paper px-3 text-[13px] text-ink placeholder:text-mute-soft outline-none focus:shadow-[3px_3px_0_#2b2733]'
+  'h-11 w-full border-2 border-line bg-paper px-3 text-[13px] text-ink placeholder:text-mute-soft outline-none focus:shadow-[3px_3px_0_#000000]'
 
 // ---------- screen shell ----------
 

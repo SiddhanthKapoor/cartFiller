@@ -17,7 +17,7 @@ const STORE_LOGO: Record<ProviderId, string> = {
 const STORE_ACCENT: Record<ProviderId, string> = {
   blinkit: '#ffc53d',
   zepto: '#9b5de5',
-  instamart: '#ff6a4d',
+  instamart: '#219ebd',
 }
 
 let host: HTMLDivElement | null = null
@@ -34,10 +34,10 @@ const STYLES = `
     max-height: 72vh;
     display: flex;
     flex-direction: column;
-    background: #fffcf6;
-    border: 2px solid #2b2733;
-    box-shadow: 6px 6px 0 #2b2733;
-    color: #2b2733;
+    background: #fffadf;
+    border: 3px solid #000000;
+    box-shadow: 6px 6px 0 #000000;
+    color: #013048;
     font-family: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
     overflow: hidden;
     animation: rise 0.35s cubic-bezier(0.22, 1, 0.36, 1);
@@ -54,41 +54,41 @@ const STYLES = `
   }
   .logo {
     width: 26px; height: 26px; flex: none;
-    background: #2b2733; color: #fff;
+    background: #000000; color: #fff;
     display: grid; place-items: center; font-size: 13px;
   }
   .title { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
   .subtitle { font-size: 10px; color: #6b6b6b; margin-top: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
   .cancel {
     margin-left: auto; cursor: pointer;
-    background: #fff; color: #2b2733; border: 2px solid #2b2733;
+    background: #fff; color: #000000; border: 2px solid #000000;
     font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
     padding: 5px 9px; font-family: inherit; transition: all 0.15s;
   }
-  .cancel:hover { background: #2b2733; color: #fff; }
+  .cancel:hover { background: #000000; color: #fff; }
   .bar {
-    height: 10px; margin: 2px 14px 0; border: 2px solid #2b2733; overflow: hidden;
+    height: 10px; margin: 2px 14px 0; border: 2px solid #000000; overflow: hidden;
   }
-  .bar-fill { height: 100%; background: #2b2733; transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+  .bar-fill { height: 100%; background: #000000; transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
   .items { padding: 10px 10px 12px; overflow-y: auto; }
   .items::-webkit-scrollbar { width: 6px; }
-  .items::-webkit-scrollbar-thumb { background: #2b2733; }
+  .items::-webkit-scrollbar-thumb { background: #000000; }
   .item {
     display: flex; align-items: center; gap: 10px;
     padding: 6px 8px; font-size: 11.5px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.03em; color: #2b2733;
+    text-transform: uppercase; letter-spacing: 0.03em; color: #000000;
     border: 2px solid transparent; margin-bottom: 2px;
   }
-  .item.running { border-color: #2b2733; }
+  .item.running { border-color: #000000; }
   .icon { width: 16px; height: 16px; flex: none; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
   .icon.pending { color: #c8c8c8; }
-  .icon.added { color: #2fbf71; }
-  .icon.skipped { color: #a8a29e; }
-  .icon.failed { color: #d92d20; }
+  .icon.added { color: #17a34a; }
+  .icon.skipped { color: #9cb0bb; }
+  .icon.failed { color: #c2121f; }
   .spinner {
     width: 13px; height: 13px; border-radius: 50%;
     border: 2px solid rgba(255,90,31,0.3);
-    border-top-color: #ff6a4d;
+    border-top-color: #219ebd;
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
