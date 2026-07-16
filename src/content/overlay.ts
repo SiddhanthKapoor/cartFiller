@@ -34,10 +34,10 @@ const STYLES = `
     max-height: 72vh;
     display: flex;
     flex-direction: column;
-    background: #ffffff;
-    border: 2px solid #0a0a0a;
-    box-shadow: 6px 6px 0 #0a0a0a;
-    color: #0a0a0a;
+    background: #fffcf6;
+    border: 2px solid #1c1917;
+    box-shadow: 6px 6px 0 #1c1917;
+    color: #1c1917;
     font-family: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
     overflow: hidden;
     animation: rise 0.35s cubic-bezier(0.22, 1, 0.36, 1);
@@ -82,9 +82,9 @@ const STYLES = `
   .item.running { border-color: #0a0a0a; }
   .icon { width: 16px; height: 16px; flex: none; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
   .icon.pending { color: #c8c8c8; }
-  .icon.added { color: #0a0a0a; }
-  .icon.skipped { color: #9a9a9a; }
-  .icon.failed { color: #c81e1e; }
+  .icon.added { color: #12a150; }
+  .icon.skipped { color: #a8a29e; }
+  .icon.failed { color: #d92d20; }
   .spinner {
     width: 13px; height: 13px; border-radius: 50%;
     border: 2px solid rgba(255,90,31,0.3);

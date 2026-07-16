@@ -115,20 +115,15 @@ export function SettingsScreen({
                 <button
                   key={p.key}
                   onClick={() => selectProvider(p.key)}
-                  style={{ boxShadow: '2px 2px 0 #0a0a0a' }}
+                  style={{ boxShadow: active ? '3px 3px 0 #ff5a1f' : '2px 2px 0 #1c1917' }}
                   className={`relative flex items-center gap-1.5 border-2 border-ink px-2 py-2 text-[10.5px] transition-colors ${
-                    active ? 'bg-ink text-paper' : 'bg-paper text-ink hover:bg-wash'
+                    active ? 'bg-accent-soft text-ink' : 'bg-paper text-ink hover:bg-wash'
                   }`}
                 >
-                  <img
-                    src={AI_LOGO[p.key]}
-                    alt=""
-                    className="h-4 w-4 flex-none object-contain"
-                    style={{ filter: active ? 'grayscale(1) invert(1)' : 'grayscale(1)' }}
-                  />
+                  <img src={AI_LOGO[p.key]} alt="" className="h-4 w-4 flex-none object-contain" />
                   <span className="mono-label truncate">{p.label}</span>
                   {hasKey && (
-                    <span className={`absolute top-1.5 right-1.5 h-1.5 w-1.5 ${active ? 'bg-paper' : 'bg-ink'}`} />
+                    <span className={`absolute top-1.5 right-1.5 h-1.5 w-1.5 ${active ? 'bg-accent' : 'bg-lime'}`} />
                   )}
                 </button>
               )

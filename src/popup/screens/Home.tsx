@@ -25,6 +25,13 @@ const SUGGESTIONS = [
 
 const TIP_KEY = 'cookcart.tipDismissed'
 
+const CHIP_HOVER = [
+  'hover:bg-accent hover:text-paper',
+  'hover:bg-lime hover:text-paper',
+  'hover:bg-sun',
+  'hover:bg-berry hover:text-paper',
+]
+
 /** One-time reminder: the fill runs on your own logged-in store session. */
 function OnboardingTip() {
   const [show, setShow] = useState(false)
@@ -116,13 +123,17 @@ export function HomeScreen({
   return (
     <Screen>
       {/* header */}
-      <div className="flex items-center gap-2.5 border-b-2 border-ink px-5 py-3.5">
-        <span className="tile h-8 w-8">
+      <div className="flex items-center gap-2.5 border-b-2 border-ink bg-accent px-5 py-3.5 text-paper">
+        <span className="grid h-8 w-8 place-items-center border-2 border-paper">
           <LogoMark size={19} />
         </span>
         <span className="mono-label text-[16px]">CookCart</span>
         <div className="ml-auto">
-          <IconButton onClick={onOpenSettings} aria-label="Settings">
+          <IconButton
+            onClick={onOpenSettings}
+            aria-label="Settings"
+            className="border-paper bg-transparent text-paper hover:bg-paper hover:text-ink"
+          >
             <GearIcon size={16} />
           </IconButton>
         </div>
@@ -157,7 +168,7 @@ export function HomeScreen({
             onClick={() => submit(query)}
             disabled={!query.trim() || generate.isPending}
             aria-label="Generate"
-            className="tile grid w-12 flex-none place-items-center border-l-2 border-ink disabled:opacity-30"
+            className="grid w-12 flex-none place-items-center border-l-2 border-ink bg-accent text-paper disabled:opacity-30"
           >
             {generate.isPending ? (
               <span className="animate-spin-slow h-4 w-4 rounded-full border-2 border-paper/40 border-t-paper" />
@@ -217,14 +228,15 @@ export function HomeScreen({
 
               {/* suggestions */}
               <div className="mt-5 flex flex-wrap gap-1.5">
-                {SUGGESTIONS.map((s) => (
+                {SUGGESTIONS.map((s, i) => (
                   <button
                     key={s}
                     onClick={() => {
                       setQuery(s)
                       if (hasKey) submit(s)
                     }}
-                    className="border-2 border-ink px-2.5 py-1 text-[11px] text-ink transition-colors hover:bg-ink hover:text-paper"
+                    style={{ boxShadow: '2px 2px 0 #1c1917' }}
+                    className={`border-2 border-ink px-2.5 py-1 text-[11px] text-ink transition-colors ${CHIP_HOVER[i % CHIP_HOVER.length]}`}
                   >
                     {s}
                   </button>

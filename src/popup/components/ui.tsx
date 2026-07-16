@@ -19,8 +19,8 @@ export function PrimaryButton({
   return (
     <motion.button
       {...press}
-      style={{ boxShadow: '4px 4px 0 #0a0a0a' }}
-      className={`tile mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-ink text-[13px] disabled:opacity-40 ${className}`}
+      style={{ boxShadow: '4px 4px 0 #1c1917' }}
+      className={`mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-ink bg-accent text-[13px] text-paper disabled:opacity-40 ${className}`}
       {...props}
     >
       {children}

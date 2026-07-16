@@ -11,7 +11,7 @@ function StatusIcon({ status }: { status: string }) {
     return (
       <span className="animate-spin-slow h-3.5 w-3.5 rounded-full border-2 border-ink/25 border-t-ink" />
     )
-  if (status === 'added') return <CheckIcon size={14} className="text-ink" />
+  if (status === 'added') return <CheckIcon size={14} className="text-lime" />
   if (status === 'skipped') return <MinusIcon size={14} className="text-mute-soft" />
   if (status === 'failed') return <XIcon size={14} className="text-danger" />
   return <span className="h-1.5 w-1.5 bg-ink/25" />
