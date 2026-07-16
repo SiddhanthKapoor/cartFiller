@@ -115,15 +115,16 @@ export function SettingsScreen({
                 <button
                   key={p.key}
                   onClick={() => selectProvider(p.key)}
-                  className={`brutal-sm relative flex items-center gap-1.5 px-2 py-2 text-[10.5px] transition-colors ${
+                  style={{ boxShadow: '2px 2px 0 #0a0a0a' }}
+                  className={`relative flex items-center gap-1.5 border-2 border-ink px-2 py-2 text-[10.5px] transition-colors ${
                     active ? 'bg-ink text-paper' : 'bg-paper text-ink hover:bg-wash'
                   }`}
                 >
                   <img
                     src={AI_LOGO[p.key]}
                     alt=""
-                    className={`h-4 w-4 flex-none object-contain ${active ? 'invert' : ''}`}
-                    style={{ filter: active ? 'grayscale(1) brightness(0) invert(1)' : 'grayscale(1) brightness(0)' }}
+                    className="h-4 w-4 flex-none object-contain"
+                    style={{ filter: active ? 'grayscale(1) invert(1)' : 'grayscale(1)' }}
                   />
                   <span className="mono-label truncate">{p.label}</span>
                   {hasKey && (

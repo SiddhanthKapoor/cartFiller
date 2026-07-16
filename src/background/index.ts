@@ -96,19 +96,20 @@ async function startFill(
   }
   await publish(job)
 
-  if (mode === 'fast') {
-    // A newly created tab already has a fresh content script. But a REUSED
-    // tab may hold a content script orphaned by the last extension reload —
-    // it silently ignores messages ("stuck at 0/N"). Reload it so a live
-    // script runs; it announces CONTENT_READY and gets RUN_ALL (commandForTab).
-    if (reused) {
-      try {
-        await chrome.tabs.update(tabId, { url: urls.searchUrl(items[0].searchQuery), active: true })
-      } catch {
-        return { ok: false, reason: 'Could not open the store tab' }
-      }
+  // A newly created tab already has a fresh content script. A REUSED tab may
+  // hold a content script orphaned by the last extension reload — it silently
+  // ignores messages (the "stuck / products don't open" symptom). Reload it so
+  // a live script runs; it announces CONTENT_READY and gets its command back
+  // (see commandForTab). Applies to both fast (Blinkit) and step-wise (Zepto).
+  if (reused) {
+    try {
+      await chrome.tabs.update(tabId, { url: urls.searchUrl(items[0].searchQuery), active: true })
+    } catch {
+      return { ok: false, reason: 'Could not open the store tab' }
     }
-  } else {
+  }
+
+  if (mode === 'stepwise') {
     await chrome.alarms.create(WATCHDOG_ALARM, { periodInMinutes: 0.5 })
   }
   return { ok: true }
