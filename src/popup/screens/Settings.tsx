@@ -115,7 +115,7 @@ export function SettingsScreen({
                 <button
                   key={p.key}
                   onClick={() => selectProvider(p.key)}
-                  style={{ boxShadow: active ? '3px 3px 0 #ff5a1f' : '2px 2px 0 #1c1917' }}
+                  style={{ boxShadow: active ? '3px 3px 0 #ff6a4d' : '2px 2px 0 #2b2733' }}
                   className={`relative flex items-center gap-1.5 border-2 border-ink px-2 py-2 text-[10.5px] transition-colors ${
                     active ? 'bg-accent-soft text-ink' : 'bg-paper text-ink hover:bg-wash'
                   }`}

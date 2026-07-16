@@ -237,7 +237,7 @@ export function HomeScreen({
                       setQuery(s)
                       if (hasKey) submit(s)
                     }}
-                    style={{ boxShadow: '2px 2px 0 #1c1917' }}
+                    style={{ boxShadow: '2px 2px 0 #2b2733' }}
                     className={`border-2 border-ink px-2.5 py-1 text-[11px] text-ink transition-colors ${CHIP_COLORS[i % CHIP_COLORS.length]}`}
                   >
                     {s}
@@ -256,7 +256,7 @@ export function HomeScreen({
                       <motion.div
                         key={meal.list.id}
                         layout
-                        style={{ boxShadow: '3px 3px 0 #1c1917' }}
+                        style={{ boxShadow: '3px 3px 0 #2b2733' }}
                         className="group flex items-stretch border-2 border-ink bg-paper"
                       >
                         <span className={`w-2 flex-none ${CARD_STRIPE[i % CARD_STRIPE.length]}`} />

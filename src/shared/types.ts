@@ -66,19 +66,19 @@ export const PROVIDERS: Record<ProviderId, ProviderMeta> = {
     id: 'blinkit',
     label: 'Blinkit',
     host: 'blinkit.com',
-    accent: '#F8CB46',
+    accent: '#ffc53d', // yellow
   },
   zepto: {
     id: 'zepto',
     label: 'Zepto',
     host: 'www.zeptonow.com',
-    accent: '#950EDB',
+    accent: '#9b5de5', // purple
   },
   instamart: {
     id: 'instamart',
     label: 'Instamart',
     host: 'www.swiggy.com',
-    accent: '#FC8019',
+    accent: '#ff6a4d',
   },
 }
 

@@ -317,9 +317,9 @@ export function ReviewScreen({
               key={provider.id}
               initial={false}
               whileHover={{ x: -2, y: -2, boxShadow: `6px 6px 0 ${provider.accent}` }}
-              whileTap={{ x: 1, y: 1, boxShadow: '0 0 0 #0a0a0a' }}
+              whileTap={{ x: 1, y: 1, boxShadow: '0 0 0 #2b2733' }}
               transition={{ duration: 0.12 }}
-              style={{ boxShadow: '3px 3px 0 #0a0a0a' }}
+              style={{ boxShadow: '3px 3px 0 #2b2733' }}
               disabled={fillBusy || activeCount === 0}
               onClick={() => onFill(provider.id)}
               className="relative flex flex-col items-center gap-1.5 border-2 border-ink bg-paper px-1.5 py-3 text-center disabled:opacity-40"

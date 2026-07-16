@@ -1,26 +1,26 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-ink: #1c1917;
-  --color-paper: #fffcf6;
-  --color-line: #1c1917;
-  --color-mute: #79716b;
-  --color-mute-soft: #a8a29e;
-  --color-wash: #f5efe2;
-  --color-danger: #d92d20;
-  --color-warn: #dc6803;
+  --color-ink: #2b2733;
+  --color-paper: #fff9f2;
+  --color-line: #2b2733;
+  --color-mute: #857f90;
+  --color-mute-soft: #b6b1bf;
+  --color-wash: #f4efe8;
+  --color-danger: #f0475b;
+  --color-warn: #f59e0b;
 
-  /* warm, appetizing accent set */
-  --color-accent: #ff5a1f;
-  --color-accent-soft: #ffe0cc;
-  --color-lime: #1f9d55;
-  --color-lime-soft: #cdf3dc;
-  --color-berry: #7c2ff0;
-  --color-berry-soft: #e9dcfd;
-  --color-sun: #f6b800;
-  --color-sun-soft: #fdedbf;
-  --color-sky: #2f74d0;
-  --color-sky-soft: #d5e6fb;
+  /* cheerful, harmonious palette */
+  --color-accent: #ff6a4d; /* coral — primary */
+  --color-accent-soft: #ffe0d8;
+  --color-lime: #2fbf71; /* green — success */
+  --color-lime-soft: #d2f4e0;
+  --color-sky: #4c9be8; /* blue */
+  --color-sky-soft: #dbebfb;
+  --color-sun: #ffc53d; /* yellow — Blinkit */
+  --color-sun-soft: #fff0c8;
+  --color-berry: #9b5de5; /* purple — Zepto */
+  --color-berry-soft: #ecdffb;
 
   --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Roboto Mono', Menlo,
     Consolas, monospace;

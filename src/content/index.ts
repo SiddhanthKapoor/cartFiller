@@ -63,7 +63,7 @@ async function handleCommand(command: ContentCommand | undefined): Promise<void>
             blinkitFastFill(
               command.items.map((it) => ({ ingredient: it.ingredient, searchQuery: it.searchQuery })),
             ),
-            sleep(25_000).then(() => skipAll('Timed out')),
+            sleep(40_000).then(() => skipAll('Timed out')),
           ])
         } catch {
           results = skipAll('Fill failed')

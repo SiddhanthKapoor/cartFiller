@@ -308,7 +308,7 @@ async function reloadTabAt(job: FillJob, query: string): Promise<void> {
   }
 }
 
-const FAST_TIMEOUT_MS = 22_000
+const FAST_TIMEOUT_MS = 45_000
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name !== WATCHDOG_ALARM) return

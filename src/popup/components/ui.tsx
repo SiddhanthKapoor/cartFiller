@@ -4,8 +4,8 @@ import { motion, type HTMLMotionProps } from 'motion/react'
 type MotionButtonProps = HTMLMotionProps<'button'>
 
 const press = {
-  whileHover: { x: -1, y: -1, boxShadow: '5px 5px 0 #0a0a0a' },
-  whileTap: { x: 2, y: 2, boxShadow: '0px 0px 0 #0a0a0a' },
+  whileHover: { x: -1, y: -1, boxShadow: '5px 5px 0 #2b2733' },
+  whileTap: { x: 2, y: 2, boxShadow: '0px 0px 0 #2b2733' },
   transition: { type: 'spring' as const, stiffness: 600, damping: 30 },
 }
 
@@ -19,7 +19,7 @@ export function PrimaryButton({
   return (
     <motion.button
       {...press}
-      style={{ boxShadow: '4px 4px 0 #1c1917' }}
+      style={{ boxShadow: '4px 4px 0 #2b2733' }}
       className={`mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-ink bg-accent text-[13px] text-paper disabled:opacity-40 ${className}`}
       {...props}
     >
@@ -36,7 +36,7 @@ export function GhostButton({
   return (
     <motion.button
       {...press}
-      style={{ boxShadow: '4px 4px 0 #0a0a0a' }}
+      style={{ boxShadow: '4px 4px 0 #2b2733' }}
       className={`mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-ink bg-paper text-[13px] text-ink disabled:opacity-40 ${className}`}
       {...props}
     >
@@ -120,7 +120,7 @@ export function Field({
 }
 
 export const inputClass =
-  'h-11 w-full border-2 border-ink bg-paper px-3 text-[13px] text-ink placeholder:text-mute-soft outline-none focus:shadow-[3px_3px_0_#0a0a0a]'
+  'h-11 w-full border-2 border-ink bg-paper px-3 text-[13px] text-ink placeholder:text-mute-soft outline-none focus:shadow-[3px_3px_0_#2b2733]'
 
 // ---------- screen shell ----------
 

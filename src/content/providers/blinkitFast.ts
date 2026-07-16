@@ -28,7 +28,7 @@ const APP_HEADERS: Record<string, string> = {
   app_version: '1010101010',
   web_app_version: '1008010016',
 }
-const CONCURRENCY = 4 // keeps us under Blinkit's search rate limit (no 429s)
+const CONCURRENCY = 3 // stay under Blinkit's search rate limit, esp. on repeat runs
 
 function cookie(name: string): string | null {
   const hit = document.cookie
@@ -87,8 +87,11 @@ async function searchProducts(
   } catch {
     return []
   }
-  if (res.status === 429 && attempt < 3) {
-    await new Promise((r) => setTimeout(r, 400 * (attempt + 1)))
+  // Rate limited (happens when the same list is filled again quickly) —
+  // back off with jitter and retry generously so items don't get dropped.
+  if ((res.status === 429 || res.status === 503) && attempt < 5) {
+    const backoff = Math.min(4_000, 500 * 2 ** attempt) + Math.random() * 400
+    await new Promise((r) => setTimeout(r, backoff))
     return searchProducts(query, headers, attempt + 1)
   }
   if (!res.ok) return []
