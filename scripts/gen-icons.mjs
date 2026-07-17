@@ -105,13 +105,22 @@ function renderIcon(size) {
       const glyphD = Math.min(toque, band, handle, basket, wheels, axle)
       const glyph = smooth(glyphD) * tile
 
-      // teal tile (#219ebd) with a cream-white cart+toque glyph
-      const tileR = 33
-      const tileG = 158
-      const tileB = 189
-      px[i] = Math.round(tileR + (255 - tileR) * glyph)
-      px[i + 1] = Math.round(tileG + (250 - tileG) * glyph)
-      px[i + 2] = Math.round(tileB + (223 - tileB) * glyph)
+      // citrus gradient tile (lime → amber → coral, diagonal) with a dark glyph
+      const lime = [198, 255, 61]
+      const amber = [255, 176, 32]
+      const coral = [255, 94, 91]
+      const t = Math.min(Math.max(x * 0.72 + y * 0.28, 0), 1)
+      const mix = (a, b, u) => a + (b - a) * u
+      const tileR =
+        t < 0.55 ? mix(lime[0], amber[0], t / 0.55) : mix(amber[0], coral[0], (t - 0.55) / 0.45)
+      const tileG =
+        t < 0.55 ? mix(lime[1], amber[1], t / 0.55) : mix(amber[1], coral[1], (t - 0.55) / 0.45)
+      const tileB =
+        t < 0.55 ? mix(lime[2], amber[2], t / 0.55) : mix(amber[2], coral[2], (t - 0.55) / 0.45)
+      // dark ink glyph (#141210) sitting on the citrus tile
+      px[i] = Math.round(tileR + (20 - tileR) * glyph)
+      px[i + 1] = Math.round(tileG + (18 - tileG) * glyph)
+      px[i + 2] = Math.round(tileB + (16 - tileB) * glyph)
       px[i + 3] = Math.round(255 * tile)
     }
   }
