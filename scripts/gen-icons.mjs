@@ -105,10 +105,13 @@ function renderIcon(size) {
       const glyphD = Math.min(toque, band, handle, basket, wheels, axle)
       const glyph = smooth(glyphD) * tile
 
-      const v = Math.round(255 * glyph) // white where glyph, else black tile
-      px[i] = v
-      px[i + 1] = v
-      px[i + 2] = v
+      // teal tile (#219ebd) with a cream-white cart+toque glyph
+      const tileR = 33
+      const tileG = 158
+      const tileB = 189
+      px[i] = Math.round(tileR + (255 - tileR) * glyph)
+      px[i + 1] = Math.round(tileG + (250 - tileG) * glyph)
+      px[i + 2] = Math.round(tileB + (223 - tileB) * glyph)
       px[i + 3] = Math.round(255 * tile)
     }
   }

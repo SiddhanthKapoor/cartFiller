@@ -15,6 +15,10 @@ const ITEM_TIMEOUT_MS = 40_000
 
 chrome.runtime.onMessage.addListener(
   (message: PopupMessage | ContentMessage, sender, sendResponse) => {
+    // Only accept messages from this extension's own popup and content
+    // scripts — never from web pages (there's no externally_connectable, but
+    // this makes that guarantee explicit).
+    if (sender.id !== chrome.runtime.id) return false
     handleMessage(message, sender)
       .then(sendResponse)
       .catch((error) => {

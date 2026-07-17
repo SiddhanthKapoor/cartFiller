@@ -5,7 +5,7 @@ import type { MatchedProduct } from '@/shared/types'
 import { currentSearchQuery } from '@/shared/providers'
 import { pause, waitFor, waitForQuietDom } from './dom'
 import { adapterFor } from './providers'
-import { blinkitCartCount } from './providers/blinkitCart'
+import { storeCartCount } from './providers/storeCart'
 import { blinkitClientSearch } from './providers/blinkitNav'
 
 type RunItemCommand = Extract<ContentCommand, { type: 'RUN_ITEM' }>
@@ -85,24 +85,27 @@ export async function runItem(command: RunItemCommand): Promise<ItemOutcome> {
   }
   const { card, best } = pick
 
-  // Ground-truth cart size before we touch anything (Blinkit only).
-  const countBefore = isBlinkit ? blinkitCartCount() : null
+  // Ground-truth cart size before we touch anything (Zepto exposes this in
+  // localStorage; Instamart doesn't, so we fall back to the DOM signal).
+  const provider = command.provider
+  const countBefore = storeCartCount(provider)
+  const canVerify = countBefore !== null
 
   await pause()
   const clicked = await adapter.addToCart(card)
-  let landed = await confirmAdded(isBlinkit, countBefore, clicked)
+  let landed = await confirmAdded(canVerify, countBefore, clicked, provider)
 
   // One retry for items that need a second gesture (variant sheet, slow
   // paint) — but only if the first attempt genuinely didn't land, so we
   // never double-add something that just registered late.
-  if (!landed && isBlinkit && countBefore !== null) {
-    const now = blinkitCartCount()
+  if (!landed && canVerify && countBefore !== null) {
+    const now = storeCartCount(provider)
     if (now !== null && now > countBefore) {
       landed = true
     } else {
       await pause(400, 700)
       await adapter.addToCart(card)
-      landed = await confirmAdded(isBlinkit, countBefore, true)
+      landed = await confirmAdded(canVerify, countBefore, true, provider)
     }
   }
 
@@ -118,13 +121,13 @@ export async function runItem(command: RunItemCommand): Promise<ItemOutcome> {
   let unitsAdded = 1
   for (let i = 1; i < best.unitsToAdd; i++) {
     await pause(300, 600)
-    const beforeStep = isBlinkit ? blinkitCartCount() : null
+    const beforeStep = storeCartCount(provider)
     const bumped = await adapter.incrementQuantity(card)
     if (!bumped) break
-    if (isBlinkit && beforeStep !== null) {
+    if (beforeStep !== null) {
       const ok = await waitFor(
         () => {
-          const c = blinkitCartCount()
+          const c = storeCartCount(provider)
           return c !== null && c > beforeStep ? c : null
         },
         { timeoutMs: 4_000, intervalMs: 200 },
@@ -177,19 +180,21 @@ function cardsMatchQuery(cards: CardHandle[], searchQuery: string): boolean {
 }
 
 /**
- * Blinkit: trust only a rise in the live cart count. Other providers: trust
- * the adapter's DOM signal (a stepper appearing) since they expose no
- * equally reliable count to the content script.
+ * When the store's cart count is readable (Blinkit, Zepto), trust only a
+ * genuine rise in it — the same number the "My Cart" badge shows — so we
+ * never report "added" for something that didn't land. Otherwise fall back
+ * to the adapter's DOM signal (a stepper appearing).
  */
 async function confirmAdded(
-  isBlinkit: boolean,
+  canVerify: boolean,
   countBefore: number | null,
   clicked: boolean,
+  provider: RunItemCommand['provider'],
 ): Promise<boolean> {
-  if (isBlinkit && countBefore !== null) {
+  if (canVerify && countBefore !== null) {
     const ok = await waitFor(
       () => {
-        const c = blinkitCartCount()
+        const c = storeCartCount(provider)
         return c !== null && c > countBefore ? c : null
       },
       { timeoutMs: 8_000, intervalMs: 250 },
