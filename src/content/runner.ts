@@ -7,6 +7,7 @@ import { pause, waitFor, waitForQuietDom } from './dom'
 import { adapterFor } from './providers'
 import { storeCartCount } from './providers/storeCart'
 import { blinkitClientSearch } from './providers/blinkitNav'
+import { clientSearch } from './providers/clientSearch'
 
 type RunItemCommand = Extract<ContentCommand, { type: 'RUN_ITEM' }>
 
@@ -29,15 +30,21 @@ export async function runItem(command: RunItemCommand): Promise<ItemOutcome> {
   const adapter = adapterFor(command.provider)
   const { item } = command
   const isBlinkit = command.provider === 'blinkit'
+  // Blinkit and Zepto are SPAs whose search box routes in-app; driving it beats
+  // a full reload per ingredient (faster, and it dodges the blank-results pages
+  // repeated navigations cause). Zepto also *signs* its search request, so this
+  // is the only way to search it — the store performs and signs its own call.
+  const useClientSearch = isBlinkit || command.provider === 'zepto'
 
   const url = new URL(location.href)
   const query = (currentSearchQuery(url) ?? '').trim().toLowerCase()
   const need = item.searchQuery.trim().toLowerCase()
   if (!adapter.isSearchPage(url) || query !== need) {
-    if (isBlinkit) {
-      // Search in-app (no full reload) — reliable where repeated full
-      // navigations make Blinkit render blank result pages.
-      const searched = await blinkitClientSearch(item.searchQuery)
+    if (useClientSearch) {
+      // Search in-app (no full reload).
+      const searched = isBlinkit
+        ? await blinkitClientSearch(item.searchQuery)
+        : await clientSearch(item.searchQuery)
       if (!searched) {
         await pause(150, 350)
         location.href = adapter.searchUrl(item.searchQuery)
@@ -61,7 +68,7 @@ export async function runItem(command: RunItemCommand): Promise<ItemOutcome> {
     () => {
       const scraped = adapter.scrapeCards()
       if (scraped.length === 0) return null
-      if (isBlinkit && !cardsMatchQuery(scraped, item.searchQuery)) return null
+      if (useClientSearch && !cardsMatchQuery(scraped, item.searchQuery)) return null
       return scraped
     },
     { timeoutMs: 12_000, intervalMs: 300 },
