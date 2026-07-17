@@ -9,7 +9,7 @@ const KEYS = {
   captures: 'cookcart.captures',
 } as const
 
-const MAX_CAPTURES = 60
+const MAX_CAPTURES = 30
 
 const MAX_MEALS = 30
 

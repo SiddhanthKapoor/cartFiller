@@ -29,16 +29,19 @@ interface Capture {
 const ACCENT = 'color:#219ebd;font-weight:bold'
 const CART = 'color:#c2121f;font-weight:bold'
 
-// URLs worth showing: real API/data calls, not assets, telemetry or ads.
-const API_RE = /\/(api|bff|graphql|search|cart|catalog|product|checkout|v\d+)\b/i
-const SKIP_RE =
-  /\.(js|mjs|css|png|jpe?g|webp|avif|svg|gif|ico|woff2?|ttf|mp4|m3u8)(\?|$)|(google-analytics|googletagmanager|doubleclick|facebook|clevertap|branch\.io|sentry|datadog|mixpanel|segment|amplitude|hotjar|newrelic|cloudfront\.net\/.*\.(js|css))/i
+// Only the calls we actually need to reverse-engineer right now: product
+// search / autosuggest, and cart / checkout. Everything else (homepage feed,
+// pass, ads, telemetry) is ignored so the capture buffer stays small.
+const SEARCH_RE = /(search|auto-?suggest|auto-?complete|suggest|catalog)/i
 const CART_RE = /(cart|atc|add-?to-?cart|add_to_cart|checkout|basket)/i
+const SKIP_RE =
+  /\.(js|mjs|css|png|jpe?g|webp|avif|svg|gif|ico|woff2?|ttf|mp4|m3u8)(\?|$)|(google-analytics|googletagmanager|doubleclick|facebook|clevertap|branch\.io|sentry|datadog|mixpanel|segment|amplitude|hotjar|newrelic|_rsc=)/i
 
 const observing = (): boolean =>
   document.documentElement?.dataset.cookcartObserve === '1'
 
-const isInteresting = (url: string): boolean => API_RE.test(url) && !SKIP_RE.test(url)
+const isInteresting = (url: string): boolean =>
+  (SEARCH_RE.test(url) || CART_RE.test(url)) && !SKIP_RE.test(url)
 
 function headersToObject(h: HeadersInit | undefined): Record<string, string> {
   const out: Record<string, string> = {}

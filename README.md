@@ -105,11 +105,29 @@ npm run instrument:capture / instrument:analyze   # network reverse-engineering 
 Settings → **Developer → Observe store API** installs a passive tap that runs in
 the store page's own JS context, so it sees the *real* requests the app makes —
 including the signed, authenticated ones an isolated content script can't
-reproduce. Turn it on, reload the store tab, and use the site: every API call
-(method, URL, request headers/body, response) is logged to that page's DevTools
-console and buffered so you can **Copy** them out as JSON. It's inert until you
-switch it on. This is how you inspect Zepto's signed cart/search endpoints
-without leaving the browser.
+reproduce. Turn it on, reload the store tab, and use the site: the store's
+**search and cart** calls (method, URL, request headers/body, response) are
+logged to that page's DevTools console and buffered so you can **Copy** them out
+as JSON. It only taps those two endpoint families — not the whole page — so the
+buffer stays small. It's inert until you switch it on. This is how Zepto's signed
+search/cart endpoints were inspected without leaving the browser.
+
+## Roadmap
+
+Planned, not yet built:
+
+- **Learned product preferences.** When the matcher picks a product you'd rather
+  swap — say it grabbed a different _paneer_ than the brand you like — you change
+  it once, and CookCart remembers. The next time that ingredient comes up it adds
+  your preferred product (brand + pack size) automatically instead of re-guessing.
+  Preferences are stored per store, on your device, and you can always override
+  again. Over time the cart fills the way _you_ shop, not the way the ranker guesses.
+- **Zepto & Instamart on the fast path.** Bring both to the same one-shot
+  `localStorage` fill Blinkit uses (see [Store support](#store-support)).
+- **Smarter substitutions.** When a preferred or matched product is out of stock,
+  fall back to the closest in-stock option instead of skipping the item.
+- **Pantry memory.** Remember the staples you marked as "already have" so you
+  don't re-check them every time.
 
 ## Honest limitations
 
