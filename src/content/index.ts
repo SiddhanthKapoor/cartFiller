@@ -126,7 +126,44 @@ chrome.runtime.onMessage.addListener((message: ContentCommand) => {
   }
 })
 
+/**
+ * Troubleshooter: the store sometimes serves a 5xx / "bad gateway" / blank
+ * page that would otherwise leave a fill stuck. Detect it and reload a couple
+ * of times (these are usually transient) before letting the normal flow run.
+ * Only kicks in when there's an active job for this tab.
+ */
+function looksBroken(): boolean {
+  const body = (document.body?.innerText ?? '').slice(0, 800).toLowerCase()
+  if (document.body && document.body.innerText.trim().length < 40) return true
+  return /(502|503|504|bad gateway|gateway time-?out|service unavailable|temporarily unavailable|something went wrong|site can'?t be reached|try again)/.test(
+    body,
+  )
+}
+
+const RELOAD_KEY = 'cookcart_pageReloads'
+
+async function recoverIfBroken(): Promise<boolean> {
+  const job = await chrome.runtime
+    .sendMessage({ type: 'GET_JOB' })
+    .catch(() => null)
+  // Only self-heal when a fill for THIS tab is actually in progress.
+  const active =
+    job &&
+    typeof job === 'object' &&
+    (job as { status?: string }).status === 'running'
+  if (!active || !looksBroken()) return false
+
+  const tries = Number(sessionStorage.getItem(RELOAD_KEY) || '0')
+  if (tries >= 3) return false
+  sessionStorage.setItem(RELOAD_KEY, String(tries + 1))
+  await sleep(1500 + tries * 1500)
+  location.reload()
+  return true
+}
+
 async function announce(): Promise<void> {
+  if (await recoverIfBroken()) return // reloading — will re-announce on load
+  sessionStorage.removeItem(RELOAD_KEY) // page is fine; reset the counter
   const command = await send({ type: 'CONTENT_READY', href: location.href })
   await handleCommand(command)
 }

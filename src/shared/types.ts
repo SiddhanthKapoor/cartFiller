@@ -129,6 +129,8 @@ export interface FillJob {
   dispatched?: boolean
   /** fast mode: how many times the watchdog has reloaded + retried the fill */
   fastRetries?: number
+  /** set once a failed fast (API) fill has fallen back to the DOM click flow */
+  fellBackToDom?: boolean
 }
 
 // ---------- Settings ----------

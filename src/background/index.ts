@@ -143,6 +143,31 @@ async function onFillDone(
     item.matched = r.matched
     item.error = r.error
   }
+
+  // Fallback: if the fast (API) fill landed nothing — the search API was
+  // blocked/erroring, not merely "no location" — switch this Blinkit job to
+  // the step-wise DOM click flow and try again. The DOM path uses the page's
+  // own Add buttons, so it works even when the API refuses us.
+  const addedCount = job.items.filter((i) => i.status === 'added').length
+  const needsLocation = job.items.some((i) => /location/i.test(i.error ?? ''))
+  if (job.provider === 'blinkit' && addedCount === 0 && !needsLocation && !job.fellBackToDom) {
+    job.fellBackToDom = true
+    job.mode = 'stepwise'
+    job.currentIndex = 0
+    job.dispatched = false
+    job.lastProgressAt = Date.now()
+    job.items.forEach((it) => {
+      it.status = 'pending'
+      it.error = undefined
+      it.retried = false
+      it.stalled = false
+    })
+    await setActiveJob(job)
+    await chrome.alarms.create(WATCHDOG_ALARM, { periodInMinutes: 0.5 })
+    await reloadTabAt(job, job.items[0].searchQuery) // fresh page → RUN_ITEM flow
+    return { type: 'IDLE' }
+  }
+
   job.status = 'done'
   job.lastProgressAt = Date.now()
   await publish(job)
