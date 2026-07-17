@@ -1,26 +1,26 @@
 @import 'tailwindcss';
 
 @theme {
-  /* neobrutalist palette */
-  --color-ink: #013048; /* text — deep navy */
-  --color-paper: #fffadf; /* warm cream background */
+  /* neobrutalist palette — warm "market" set (terracotta / gold / espresso) */
+  --color-ink: #241914; /* text — warm espresso */
+  --color-paper: #fbf3e7; /* warm cream background */
   --color-line: #000000; /* borders — pure black */
-  --color-mute: #5a7787;
-  --color-mute-soft: #9cb0bb;
-  --color-wash: #fdf2c4; /* soft cream tint */
-  --color-danger: #c2121f;
+  --color-mute: #7a6a5d;
+  --color-mute-soft: #b6a693;
+  --color-wash: #f4e8d5; /* soft cream tint */
+  --color-danger: #c81e1e;
   --color-warn: #d97706;
 
-  --color-accent: #219ebd; /* primary — teal */
-  --color-accent-soft: #cfe9f0;
-  --color-sun: #ffb805; /* yellow accent — Blinkit */
-  --color-sun-soft: #ffe9a3;
-  --color-lime: #17a34a; /* green — success */
-  --color-lime-soft: #c9f0d5;
-  --color-sky: #219ebd;
-  --color-sky-soft: #cfe9f0;
-  --color-berry: #7c3aed; /* purple — Zepto */
-  --color-berry-soft: #e5d8fb;
+  --color-accent: #e0542b; /* primary — terracotta */
+  --color-accent-soft: #f8dccc;
+  --color-sun: #f2a900; /* golden accent */
+  --color-sun-soft: #fce7bb;
+  --color-lime: #2f9e44; /* fresh green — success */
+  --color-lime-soft: #c9ecd0;
+  --color-sky: #e0542b; /* alias of accent (used by summary tiles) */
+  --color-sky-soft: #f8dccc;
+  --color-berry: #6d28d9; /* purple — Zepto */
+  --color-berry-soft: #e4d5fb;
 
   --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Roboto Mono', Menlo,
     Consolas, monospace;

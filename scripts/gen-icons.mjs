@@ -105,13 +105,13 @@ function renderIcon(size) {
       const glyphD = Math.min(toque, band, handle, basket, wheels, axle)
       const glyph = smooth(glyphD) * tile
 
-      // teal tile (#219ebd) with a cream-white cart+toque glyph
-      const tileR = 33
-      const tileG = 158
-      const tileB = 189
-      px[i] = Math.round(tileR + (255 - tileR) * glyph)
-      px[i + 1] = Math.round(tileG + (250 - tileG) * glyph)
-      px[i + 2] = Math.round(tileB + (223 - tileB) * glyph)
+      // terracotta tile (#e0542b) with a cream-white cart+toque glyph
+      const tileR = 224
+      const tileG = 84
+      const tileB = 43
+      px[i] = Math.round(tileR + (251 - tileR) * glyph)
+      px[i + 1] = Math.round(tileG + (243 - tileG) * glyph)
+      px[i + 2] = Math.round(tileB + (231 - tileB) * glyph)
       px[i + 3] = Math.round(255 * tile)
     }
   }
