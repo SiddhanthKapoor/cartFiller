@@ -146,6 +146,8 @@ export interface Settings {
   ai: AiSettings
   skipPantryStaples: boolean
   budgetInr: number | null
+  /** Developer: tap store API calls into the page console + a capture buffer. */
+  observeApi: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -156,6 +158,7 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   skipPantryStaples: false,
   budgetInr: null,
+  observeApi: false,
 }
 
 /** The key for the currently selected provider, if any. */

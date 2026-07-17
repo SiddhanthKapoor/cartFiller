@@ -100,6 +100,17 @@ npm run build            # typecheck + production build into dist/
 npm run instrument:capture / instrument:analyze   # network reverse-engineering harness
 ```
 
+### Observe store APIs (built-in)
+
+Settings → **Developer → Observe store API** installs a passive tap that runs in
+the store page's own JS context, so it sees the *real* requests the app makes —
+including the signed, authenticated ones an isolated content script can't
+reproduce. Turn it on, reload the store tab, and use the site: every API call
+(method, URL, request headers/body, response) is logged to that page's DevTools
+console and buffered so you can **Copy** them out as JSON. It's inert until you
+switch it on. This is how you inspect Zepto's signed cart/search endpoints
+without leaving the browser.
+
 ## Honest limitations
 
 - Quick-commerce catalogues vary by location; the matcher is a best-effort ranking. The progress screen and overlay show exactly what was added (name, pack, price) so you can adjust before checkout.

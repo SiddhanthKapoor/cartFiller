@@ -3,6 +3,7 @@ import { sleep } from './dom'
 import { runItem, type ItemOutcome } from './runner'
 import { removeOverlay, renderOverlay } from './overlay'
 import { blinkitFastFill, waitForBlinkitReady } from './providers/blinkitFast'
+import { startObserveBridge } from './observeBridge'
 
 /**
  * Content script lifecycle:
@@ -169,3 +170,4 @@ async function announce(): Promise<void> {
 }
 
 void announce()
+void startObserveBridge()
