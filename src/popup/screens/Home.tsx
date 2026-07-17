@@ -25,13 +25,12 @@ const SUGGESTIONS = [
 
 const TIP_KEY = 'cookcart.tipDismissed'
 
-// each chip / card gets a rotating neon accent so the list feels alive
-const NEON = [
-  { text: 'text-lime', bg: 'bg-lime-soft', dot: 'bg-lime' },
-  { text: 'text-amber', bg: 'bg-amber-soft', dot: 'bg-amber' },
-  { text: 'text-grape', bg: 'bg-grape-soft', dot: 'bg-grape' },
-  { text: 'text-coral', bg: 'bg-coral-soft', dot: 'bg-coral' },
+const CHIP_COLORS = [
+  'bg-accent-soft hover:bg-accent hover:text-paper',
+  'bg-sun-soft hover:bg-sun',
 ]
+
+const CARD_STRIPE = ['bg-accent', 'bg-sun', 'bg-accent', 'bg-sun']
 
 /** One-time reminder: the fill runs on your own logged-in store session. */
 function OnboardingTip() {
@@ -44,28 +43,28 @@ function OnboardingTip() {
     <motion.div
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
-      className="mt-4 overflow-hidden"
+      className="mb-4 overflow-hidden"
     >
-      <div className="card px-4 py-3.5">
+      <div className="brutal-flat px-3.5 py-3">
         <div className="flex items-start gap-3">
-          <span className="grid h-7 w-7 flex-none place-items-center rounded-full bg-grape-soft text-grape">
-            <CartIcon size={14} />
+          <span className="tile mt-0.5 h-6 w-6 flex-none">
+            <CartIcon size={13} />
           </span>
           <div className="flex-1">
-            <p className="text-[11.5px] leading-relaxed text-mute">
+            <p className="text-[11.5px] leading-relaxed text-ink">
               Open your store (Blinkit / Zepto / Instamart), be{' '}
-              <span className="font-semibold text-ink">logged in</span> with a{' '}
-              <span className="font-semibold text-ink">delivery location</span> set. CookCart fills
-              the cart on your own session — it never sees your login.
+              <span className="mono-label">logged in</span> with a{' '}
+              <span className="mono-label">delivery location</span> set. CookCart fills the cart on
+              your own session — it never sees your login.
             </p>
             <button
               onClick={() => {
                 setShow(false)
                 void chrome.storage.local.set({ [TIP_KEY]: true })
               }}
-              className="label mt-2 text-[11px] text-lime"
+              className="mono-label mt-2 text-[11px] underline"
             >
-              Got it →
+              Got it
             </button>
           </div>
         </div>
@@ -92,7 +91,6 @@ export function HomeScreen({
   onDeleteMeal: (id: string) => void
 }) {
   const [query, setQuery] = useState('')
-  const [focused, setFocused] = useState(false)
   const hasKey = activeApiKey(settings.ai).length > 0
 
   const generate = useMutation({
@@ -125,13 +123,17 @@ export function HomeScreen({
   return (
     <Screen>
       {/* header */}
-      <div className="flex items-center gap-2.5 px-5 pt-4 pb-1">
-        <span className="citrus-fill grid h-8 w-8 place-items-center rounded-xl text-paper">
-          <LogoMark size={18} />
+      <div className="flex items-center gap-2.5 border-b-2 border-line bg-accent px-5 py-3.5 text-paper">
+        <span className="grid h-8 w-8 place-items-center border-2 border-paper">
+          <LogoMark size={19} />
         </span>
-        <span className="display text-[18px] text-ink">CookCart</span>
+        <span className="mono-label text-[16px]">CookCart</span>
         <div className="ml-auto">
-          <IconButton onClick={onOpenSettings} aria-label="Settings">
+          <IconButton
+            onClick={onOpenSettings}
+            aria-label="Settings"
+            className="border-paper bg-transparent text-paper hover:bg-paper hover:text-ink"
+          >
             <GearIcon size={16} />
           </IconButton>
         </div>
@@ -139,50 +141,46 @@ export function HomeScreen({
 
       <div className="flex-1 overflow-y-auto px-5 pb-5">
         {/* hero */}
-        <div className="pt-6 pb-5">
-          <h1 className="display text-[40px] text-ink">
-            Type a dish.
+        <div className="pt-6 pb-4">
+          <h1 className="mono-label text-[26px] leading-[1.05] text-ink">
+            What do you
             <br />
-            <span className="citrus-text">Get a cart.</span>
+            want to cook?
           </h1>
-          <p className="mt-3 text-[12.5px] leading-relaxed text-mute">
-            Every ingredient, in real quantities — filled into your grocery cart in about a second.
+          <p className="mt-2.5 text-[12px] text-mute">
+            Ingredients, quantities, and a filled cart — automatically.
           </p>
         </div>
 
         {/* input */}
-        <div
-          className={`flex items-stretch overflow-hidden rounded-2xl border bg-surface2 transition-colors ${
-            focused ? 'border-lime' : 'border-line'
-          }`}
-        >
+        <div className="brutal flex items-stretch">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
             onKeyDown={(e) => e.key === 'Enter' && submit(query)}
-            placeholder="Chicken biryani for 4…"
+            placeholder="Chicken Biryani"
             disabled={generate.isPending}
-            className="h-13 flex-1 bg-transparent px-4 py-3.5 text-[14px] font-medium text-ink outline-none placeholder:font-normal placeholder:text-mute-soft"
+            className="h-12 flex-1 bg-transparent px-3.5 text-[14px] font-semibold text-ink outline-none placeholder:font-normal placeholder:text-mute-soft"
             autoFocus
           />
           <motion.button
-            whileTap={{ scale: 0.88 }}
+            whileTap={{ scale: 0.92 }}
             onClick={() => submit(query)}
             disabled={!query.trim() || generate.isPending}
             aria-label="Generate"
-            className="citrus-fill m-1.5 grid w-11 flex-none place-items-center rounded-xl text-paper disabled:opacity-30 disabled:grayscale"
+            className="grid w-12 flex-none place-items-center border-l-2 border-line bg-accent text-paper disabled:opacity-30"
           >
             {generate.isPending ? (
               <span className="animate-spin-slow h-4 w-4 rounded-full border-2 border-paper/40 border-t-paper" />
             ) : (
-              <ArrowUpIcon size={17} />
+              <ArrowUpIcon size={16} className="rotate-90" />
             )}
           </motion.button>
         </div>
 
-        <OnboardingTip />
+        <div className="mt-4">
+          <OnboardingTip />
+        </div>
 
         <AnimatePresence mode="wait">
           {generate.isPending ? (
@@ -193,18 +191,20 @@ export function HomeScreen({
               exit={{ opacity: 0 }}
               className="mt-5"
             >
-              <div className="card px-4 pt-3 pb-5">
+              <div className="brutal-flat px-4 pt-2 pb-4">
                 <CookingLoader />
-                <div className="label text-center text-[12px] text-ink">Cooking up your list…</div>
+                <div className="mono-label text-center text-[11px] text-ink">
+                  Cooking up your list…
+                </div>
                 <div className="mt-1 text-center text-[10.5px] text-mute">
-                  working out ingredients &amp; quantities
+                  working out ingredients & quantities
                 </div>
               </div>
             </motion.div>
           ) : (
             <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               {errorMessage && (
-                <div className="mt-4 rounded-2xl border border-coral/40 bg-coral-soft px-4 py-3 text-[12px] leading-relaxed text-coral">
+                <div className="mt-4 border-2 border-danger px-3.5 py-2.5 text-[12px] leading-relaxed text-danger">
                   {errorMessage}
                 </div>
               )}
@@ -212,13 +212,13 @@ export function HomeScreen({
               {!hasKey && (
                 <button
                   onClick={onOpenSettings}
-                  className="card mt-4 flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:border-lime"
+                  className="brutal-sm mt-4 flex w-full items-center gap-3 px-3.5 py-3 text-left"
                 >
-                  <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-lime-soft text-lime">
-                    <KeyIcon size={16} />
+                  <span className="tile h-8 w-8 flex-none">
+                    <KeyIcon size={15} />
                   </span>
                   <span>
-                    <span className="label block text-[12.5px] text-ink">Connect an AI provider</span>
+                    <span className="mono-label block text-[12px] text-ink">Connect an AI provider</span>
                     <span className="mt-0.5 block text-[11px] text-mute">
                       A free Gemini API key is enough to start
                     </span>
@@ -227,71 +227,62 @@ export function HomeScreen({
               )}
 
               {/* suggestions */}
-              <div className="mt-5 flex flex-wrap gap-2">
-                {SUGGESTIONS.map((s, i) => {
-                  const n = NEON[i % NEON.length]
-                  return (
-                    <button
-                      key={s}
-                      onClick={() => {
-                        setQuery(s)
-                        if (hasKey) submit(s)
-                      }}
-                      className={`label rounded-full border border-line px-3 py-1.5 text-[11px] transition-colors hover:border-transparent ${n.bg} ${n.text}`}
-                    >
-                      {s}
-                    </button>
-                  )
-                })}
+              <div className="mt-5 flex flex-wrap gap-1.5">
+                {SUGGESTIONS.map((s, i) => (
+                  <button
+                    key={s}
+                    onClick={() => {
+                      setQuery(s)
+                      if (hasKey) submit(s)
+                    }}
+                    style={{ boxShadow: '2px 2px 0 #000000' }}
+                    className={`border-2 border-line px-2.5 py-1 text-[11px] text-ink transition-colors ${CHIP_COLORS[i % CHIP_COLORS.length]}`}
+                  >
+                    {s}
+                  </button>
+                ))}
               </div>
 
               {/* saved + recent */}
               {(favorites.length > 0 || recents.length > 0) && (
                 <div className="mt-6">
-                  <div className="kicker mb-2.5 text-[10px] text-mute">
+                  <div className="mono-label mb-2 text-[11px] text-mute">
                     {favorites.length > 0 ? 'Saved & Recent' : 'Recent'}
                   </div>
                   <div className="space-y-2">
-                    {[...favorites, ...recents].map((meal, i) => {
-                      const n = NEON[i % NEON.length]
-                      return (
-                        <motion.div
-                          key={meal.list.id}
-                          layout
-                          className="group card flex items-stretch overflow-hidden transition-colors hover:border-mute-soft"
+                    {[...favorites, ...recents].map((meal, i) => (
+                      <motion.div
+                        key={meal.list.id}
+                        layout
+                        style={{ boxShadow: '3px 3px 0 #000000' }}
+                        className="group flex items-stretch border-2 border-line bg-paper"
+                      >
+                        <span className={`w-2 flex-none ${CARD_STRIPE[i % CARD_STRIPE.length]}`} />
+                        <button onClick={() => onOpenMeal(meal.list)} className="flex-1 py-1.5 pl-2.5 text-left">
+                          <span className="block truncate text-[12.5px] font-semibold text-ink">
+                            {meal.list.dish}
+                          </span>
+                          <span className="block text-[10.5px] text-mute">
+                            {meal.list.ingredients.length} items · {meal.list.servings} servings
+                            {meal.list.estimatedCostInr > 0 && ` · ~₹${meal.list.estimatedCostInr}`}
+                          </span>
+                        </button>
+                        <button
+                          onClick={() => onToggleFavorite(meal.list.id)}
+                          aria-label="Favorite"
+                          className={`my-1 grid w-8 place-items-center border-l-2 border-line ${meal.favorite ? 'bg-sun text-ink' : 'hover:bg-sun-soft'}`}
                         >
-                          <span className={`w-1 flex-none ${n.dot}`} />
-                          <button
-                            onClick={() => onOpenMeal(meal.list)}
-                            className="flex-1 py-2.5 pl-3 text-left"
-                          >
-                            <span className="label block truncate text-[12.5px] text-ink">
-                              {meal.list.dish}
-                            </span>
-                            <span className="block text-[10.5px] text-mute">
-                              {meal.list.ingredients.length} items · {meal.list.servings} servings
-                              {meal.list.estimatedCostInr > 0 && ` · ~₹${meal.list.estimatedCostInr}`}
-                            </span>
-                          </button>
-                          <button
-                            onClick={() => onToggleFavorite(meal.list.id)}
-                            aria-label="Favorite"
-                            className={`grid w-9 place-items-center transition-colors ${
-                              meal.favorite ? 'text-amber' : 'text-mute-soft hover:text-amber'
-                            }`}
-                          >
-                            <StarIcon size={14} filled={meal.favorite} />
-                          </button>
-                          <button
-                            onClick={() => onDeleteMeal(meal.list.id)}
-                            aria-label="Delete"
-                            className="grid w-9 place-items-center text-mute-soft transition-colors hover:text-coral"
-                          >
-                            <TrashIcon size={14} />
-                          </button>
-                        </motion.div>
-                      )
-                    })}
+                          <StarIcon size={13} filled={meal.favorite} />
+                        </button>
+                        <button
+                          onClick={() => onDeleteMeal(meal.list.id)}
+                          aria-label="Delete"
+                          className="my-1 grid w-8 place-items-center border-l-2 border-line hover:bg-danger hover:text-paper"
+                        >
+                          <TrashIcon size={13} />
+                        </button>
+                      </motion.div>
+                    ))}
                   </div>
                 </div>
               )}

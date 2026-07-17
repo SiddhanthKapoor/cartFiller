@@ -3,15 +3,14 @@ import { motion, type HTMLMotionProps } from 'motion/react'
 
 type MotionButtonProps = HTMLMotionProps<'button'>
 
-const springy = {
-  whileHover: { scale: 1.02, y: -1 },
-  whileTap: { scale: 0.96 },
-  transition: { type: 'spring' as const, stiffness: 500, damping: 24 },
+const press = {
+  whileHover: { x: -1, y: -1, boxShadow: '5px 5px 0 #000000' },
+  whileTap: { x: 2, y: 2, boxShadow: '0px 0px 0 #000000' },
+  transition: { type: 'spring' as const, stiffness: 600, damping: 30 },
 }
 
 // ---------- buttons ----------
 
-/** Primary action — a lime pill with a soft glow and dark ink text. */
 export function PrimaryButton({
   children,
   className = '',
@@ -19,8 +18,9 @@ export function PrimaryButton({
 }: MotionButtonProps & { children: ReactNode }) {
   return (
     <motion.button
-      {...springy}
-      className={`glow-lime label flex h-12 w-full items-center justify-center gap-2 rounded-full bg-accent text-[14px] text-paper disabled:opacity-40 disabled:saturate-50 ${className}`}
+      {...press}
+      style={{ boxShadow: '4px 4px 0 #000000' }}
+      className={`mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-line bg-accent text-[13px] text-paper disabled:opacity-40 ${className}`}
       {...props}
     >
       {children}
@@ -28,7 +28,6 @@ export function PrimaryButton({
   )
 }
 
-/** Secondary — a hollow pill on the dark canvas. */
 export function GhostButton({
   children,
   className = '',
@@ -36,8 +35,9 @@ export function GhostButton({
 }: MotionButtonProps & { children: ReactNode }) {
   return (
     <motion.button
-      {...springy}
-      className={`label flex h-12 w-full items-center justify-center gap-2 rounded-full border border-line bg-surface text-[14px] text-ink hover:border-mute-soft disabled:opacity-40 ${className}`}
+      {...press}
+      style={{ boxShadow: '4px 4px 0 #000000' }}
+      className={`mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-line bg-paper text-[13px] text-ink disabled:opacity-40 ${className}`}
       {...props}
     >
       {children}
@@ -52,7 +52,7 @@ export function IconButton({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode }) {
   return (
     <button
-      className={`grid h-10 w-10 flex-none place-items-center rounded-full border border-line bg-surface text-ink transition-colors hover:border-mute-soft hover:text-lime ${className}`}
+      className={`grid h-9 w-9 flex-none place-items-center border-2 border-line bg-paper text-ink transition-colors hover:bg-ink hover:text-paper ${className}`}
       {...props}
     >
       {children}
@@ -80,21 +80,19 @@ export function Toggle({
       className="flex w-full items-center justify-between gap-3 text-left"
     >
       <span>
-        <span className="label block text-[13px] text-ink">{label}</span>
+        <span className="mono-label block text-[12px] text-ink">{label}</span>
         {hint && <span className="mt-0.5 block text-[11px] text-mute">{hint}</span>}
       </span>
       <span
-        className={`relative h-7 w-12 flex-none rounded-full border transition-colors ${
-          checked ? 'border-lime bg-accent glow-lime' : 'border-line bg-surface2'
+        className={`relative h-7 w-12 flex-none border-2 border-line transition-colors ${
+          checked ? 'bg-ink' : 'bg-paper'
         }`}
       >
         <motion.span
           layout
           transition={{ type: 'spring', stiffness: 700, damping: 34 }}
-          className={`absolute top-[3px] h-[18px] w-[18px] rounded-full ${
-            checked ? 'bg-paper' : 'bg-mute'
-          }`}
-          style={{ left: checked ? 23 : 3 }}
+          className={`absolute top-[2px] h-[20px] w-[20px] ${checked ? 'bg-paper' : 'bg-ink'}`}
+          style={{ left: checked ? 22 : 2 }}
         />
       </span>
     </button>
@@ -114,7 +112,7 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="kicker mb-2 block text-[10px] text-mute">{label}</span>
+      <span className="mono-label mb-1.5 block text-[11px] text-ink">{label}</span>
       {children}
       {hint && <span className="mt-1.5 block text-[11px] leading-relaxed text-mute">{hint}</span>}
     </label>
@@ -122,7 +120,7 @@ export function Field({
 }
 
 export const inputClass =
-  'h-11 w-full rounded-2xl border border-line bg-surface2 px-3.5 text-[13px] text-ink placeholder:text-mute-soft outline-none transition-colors focus:border-lime'
+  'h-11 w-full border-2 border-line bg-paper px-3 text-[13px] text-ink placeholder:text-mute-soft outline-none focus:shadow-[3px_3px_0_#000000]'
 
 // ---------- screen shell ----------
 

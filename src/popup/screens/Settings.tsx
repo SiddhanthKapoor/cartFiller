@@ -11,14 +11,12 @@ import { AI_LOGO } from '../assets/brands'
 function GeminiKeyHelp() {
   const [open, setOpen] = useState(false)
   return (
-    <div className="-mt-1">
+    <div className="-mt-2">
       <button
         onClick={() => setOpen(!open)}
-        className="label flex items-center gap-1.5 text-[11px] text-lime"
+        className="mono-label flex items-center gap-1.5 text-[11px] text-ink underline"
       >
-        <span className="grid h-4 w-4 place-items-center rounded-full border border-lime text-[9px]">
-          ?
-        </span>
+        <span className="grid h-4 w-4 place-items-center border-2 border-line text-[9px]">?</span>
         How do I get a free key?
       </button>
       <AnimatePresence>
@@ -27,7 +25,7 @@ function GeminiKeyHelp() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="mt-2 space-y-1.5 overflow-hidden rounded-2xl border border-line bg-surface px-4 py-3 text-[11px] leading-relaxed text-mute"
+            className="mt-2 space-y-1.5 overflow-hidden border-2 border-line px-3.5 py-3 text-[11px] leading-relaxed text-mute"
           >
             <li>
               1. Open{' '}
@@ -35,7 +33,7 @@ function GeminiKeyHelp() {
                 href="https://aistudio.google.com/apikey"
                 target="_blank"
                 rel="noreferrer"
-                className="text-lime underline"
+                className="text-ink underline"
               >
                 aistudio.google.com/apikey
               </a>{' '}
@@ -81,42 +79,42 @@ function DeveloperSection({
   }
 
   return (
-    <div className="card px-4 py-3.5">
+    <div className="border-2 border-line px-3.5 py-3">
       <div className="flex items-center justify-between">
-        <span className="label text-[12.5px] text-ink">Observe store API</span>
+        <span className="mono-label text-[11px] text-ink">Observe store API</span>
         <button
           role="switch"
           aria-checked={on}
           onClick={() => onToggle(!on)}
-          className={`relative h-6 w-11 rounded-full border transition-colors ${
-            on ? 'border-lime bg-accent glow-lime' : 'border-line bg-surface2'
-          }`}
+          style={{ boxShadow: '2px 2px 0 #000000' }}
+          className={`relative h-6 w-11 border-2 border-line transition-colors ${on ? 'bg-accent' : 'bg-paper'}`}
         >
           <span
-            className={`absolute top-[2px] h-4 w-4 rounded-full transition-all ${
-              on ? 'bg-paper' : 'bg-mute'
-            }`}
-            style={{ left: on ? '22px' : '2px' }}
+            className="absolute top-0.5 h-4 w-4 border-2 border-line bg-paper transition-all"
+            style={{ left: on ? '20px' : '2px' }}
           />
         </button>
       </div>
       <p className="mt-2 text-[11px] leading-relaxed text-mute">
-        Logs each store's real API calls (headers, body, response) to that page's DevTools console
-        and a copy buffer. Turn on, reload the store tab, then use the site.
+        Logs each store's real API calls (headers, body, response) to that page's
+        DevTools console and a copy buffer. Turn on, reload the store tab, then use
+        the site. For signed stores like Zepto this reveals the exact requests the
+        app makes.
       </p>
       {on && (
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-2.5 flex items-center gap-2">
           <button
             onClick={copy}
             disabled={count === 0}
-            className="label rounded-full border border-line bg-surface2 px-3 py-1.5 text-[10.5px] text-ink transition-colors hover:border-lime disabled:opacity-40"
+            style={{ boxShadow: count ? '2px 2px 0 #000000' : 'none' }}
+            className="mono-label border-2 border-line px-2.5 py-1.5 text-[10.5px] text-ink hover:bg-wash disabled:opacity-40"
           >
             {copied ? 'Copied ✓' : `Copy ${count} call${count === 1 ? '' : 's'}`}
           </button>
           <button
             onClick={clear}
             disabled={count === 0}
-            className="label rounded-full border border-line bg-surface2 px-3 py-1.5 text-[10.5px] text-mute transition-colors hover:text-coral disabled:opacity-40"
+            className="mono-label border-2 border-line px-2.5 py-1.5 text-[10.5px] text-ink hover:bg-wash disabled:opacity-40"
           >
             Clear
           </button>
@@ -174,17 +172,17 @@ export function SettingsScreen({
 
   return (
     <Screen>
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-2">
+      <div className="flex items-center gap-2.5 border-b-2 border-line px-4 py-3.5">
         <IconButton onClick={onBack} aria-label="Back">
           <ChevronLeftIcon size={16} />
         </IconButton>
-        <h2 className="display text-[17px] text-ink">Settings</h2>
+        <h2 className="mono-label text-[15px]">Settings</h2>
       </div>
 
-      <div className="flex-1 space-y-5 overflow-y-auto px-5 py-3">
+      <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
         {/* provider */}
         <div>
-          <span className="kicker mb-2.5 block text-[10px] text-mute">AI Provider</span>
+          <span className="mono-label mb-2 block text-[11px] text-ink">AI Provider</span>
           <div className="grid grid-cols-3 gap-2">
             {AI_PROVIDER_LIST.map((p) => {
               const active = draft.ai.provider === p.key
@@ -193,20 +191,15 @@ export function SettingsScreen({
                 <button
                   key={p.key}
                   onClick={() => selectProvider(p.key)}
-                  className={`relative flex items-center gap-1.5 rounded-2xl border px-2.5 py-2.5 text-[10.5px] transition-colors ${
-                    active
-                      ? 'border-lime bg-lime-soft text-ink'
-                      : 'border-line bg-surface text-mute hover:border-mute-soft'
+                  style={{ boxShadow: active ? '3px 3px 0 #219ebd' : '2px 2px 0 #000000' }}
+                  className={`relative flex items-center gap-1.5 border-2 border-line px-2 py-2 text-[10.5px] transition-colors ${
+                    active ? 'bg-accent-soft text-ink' : 'bg-paper text-ink hover:bg-wash'
                   }`}
                 >
                   <img src={AI_LOGO[p.key]} alt="" className="h-4 w-4 flex-none object-contain" />
-                  <span className="label truncate">{p.label}</span>
+                  <span className="mono-label truncate">{p.label}</span>
                   {hasKey && (
-                    <span
-                      className={`absolute top-2 right-2 h-1.5 w-1.5 rounded-full ${
-                        active ? 'bg-lime' : 'bg-mute-soft'
-                      }`}
-                    />
+                    <span className={`absolute top-1.5 right-1.5 h-1.5 w-1.5 ${active ? 'bg-accent' : 'bg-lime'}`} />
                   )}
                 </button>
               )
@@ -220,7 +213,7 @@ export function SettingsScreen({
             <select
               value={draft.ai.model}
               onChange={(e) => setDraft({ ...draft, ai: { ...draft.ai, model: e.target.value } })}
-              className={`${inputClass} cursor-pointer appearance-none pr-9`}
+              className={`${inputClass} appearance-none pr-9`}
             >
               {provider.models.map((model) => (
                 <option key={model} value={model}>
@@ -230,7 +223,7 @@ export function SettingsScreen({
             </select>
             <ChevronLeftIcon
               size={14}
-              className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 -rotate-90 text-mute"
+              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 -rotate-90"
             />
           </div>
         </Field>
@@ -251,7 +244,7 @@ export function SettingsScreen({
             <button
               onClick={() => setShowKey(!showKey)}
               aria-label={showKey ? 'Hide key' : 'Show key'}
-              className="absolute top-0 right-0 grid h-11 w-11 place-items-center rounded-r-2xl text-mute hover:text-ink"
+              className="absolute top-0 right-0 grid h-11 w-11 place-items-center border-l-2 border-line hover:bg-wash"
             >
               <EyeIcon size={15} open={showKey} />
             </button>
@@ -262,9 +255,9 @@ export function SettingsScreen({
 
         {/* budget */}
         <div>
-          <div className="mb-2.5 flex items-baseline justify-between">
-            <span className="kicker text-[10px] text-mute">Default budget</span>
-            <span className="display text-[15px] tabular-nums text-lime">
+          <div className="mb-2 flex items-baseline justify-between">
+            <span className="mono-label text-[11px] text-ink">Default budget</span>
+            <span className="mono-label text-[14px] tabular-nums">
               {draft.budgetInr ? `₹${draft.budgetInr}` : 'Off'}
             </span>
           </div>
@@ -284,7 +277,7 @@ export function SettingsScreen({
 
         {/* developer */}
         <div>
-          <span className="kicker mb-2.5 block text-[10px] text-mute">Developer</span>
+          <span className="mono-label mb-2 block text-[11px] text-ink">Developer</span>
           <DeveloperSection
             on={draft.observeApi}
             onToggle={(next) => setDraft({ ...draft, observeApi: next })}
@@ -292,8 +285,8 @@ export function SettingsScreen({
         </div>
       </div>
 
-      <div className="px-5 pt-3 pb-4">
-        <PrimaryButton onClick={save}>{saved ? 'Saved ✓' : 'Save settings'}</PrimaryButton>
+      <div className="border-t-2 border-line px-5 pt-3.5 pb-4">
+        <PrimaryButton onClick={save}>{saved ? 'Saved ✓' : 'Save Settings'}</PrimaryButton>
       </div>
     </Screen>
   )

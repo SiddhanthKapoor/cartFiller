@@ -6,6 +6,9 @@ import { formatQuantity, quantityStep, scaleQuantity } from '@/shared/units'
 import { normalizeIngredient } from '@/shared/normalize'
 import { IconButton, Screen, Toggle } from '../components/ui'
 import { STORE_LOGO } from '../assets/brands'
+
+// Blinkit is the fast, reliable path; Zepto second. (Instamart omitted for now.)
+const FILL_STORES = [PROVIDERS.blinkit, PROVIDERS.zepto]
 import {
   CartIcon,
   CheckIcon,
@@ -15,9 +18,6 @@ import {
   PlusIcon,
   XIcon,
 } from '../components/icons'
-
-// Blinkit is the fast, reliable path; Zepto second. (Instamart omitted for now.)
-const FILL_STORES = [PROVIDERS.blinkit, PROVIDERS.zepto]
 
 function IngredientRow({
   ingredient,
@@ -60,60 +60,57 @@ function IngredientRow({
       animate={{ opacity: dimmed ? 0.4 : 1, y: 0 }}
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
       transition={{ type: 'spring', stiffness: 500, damping: 38 }}
-      className="group flex items-stretch overflow-hidden rounded-2xl border border-line bg-surface"
+      className="group -mt-[2px] flex items-stretch border-2 border-line"
     >
-      <div className="min-w-0 flex-1 px-3.5 py-2.5">
+      <span className="tile w-9 flex-none border-r-2 border-line">
+        <CartIcon size={14} />
+      </span>
+      <div className="min-w-0 flex-1 px-2.5 py-1.5">
         {editing ? (
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onBlur={commitName}
             onKeyDown={(e) => e.key === 'Enter' && commitName()}
-            className="w-full bg-transparent text-[12.5px] font-semibold text-ink outline-none"
+            className="w-full bg-transparent text-[12px] font-semibold text-ink outline-none"
             autoFocus
           />
         ) : (
           <button
             onClick={() => setEditing(true)}
             title="Tap to rename / substitute"
-            className="label block max-w-full truncate text-left text-[12.5px] text-ink"
+            className="mono-label block max-w-full truncate text-left text-[12px] text-ink"
           >
             {ingredient.name}
-            {ingredient.optional && (
-              <span className="ml-1.5 rounded-full bg-grape-soft px-1.5 py-0.5 text-[9px] font-medium text-grape">
-                opt
-              </span>
-            )}
+            {ingredient.optional && <span className="ml-1.5 lowercase text-[10px] text-mute">opt</span>}
           </button>
         )}
-        <span className="mt-0.5 block text-[10.5px] text-mute">
+        <span className="block text-[10.5px] text-mute">
           {formatQuantity(ingredient.quantity, ingredient.unit)}
         </span>
       </div>
 
-      <div className="flex items-center gap-1 pr-2">
-        <button
-          onClick={() => bump(-1)}
-          aria-label="Less"
-          className="grid h-7 w-7 flex-none place-items-center rounded-full text-mute transition-colors hover:bg-surface2 hover:text-ink"
-        >
-          <MinusIcon size={13} />
-        </button>
-        <button
-          onClick={() => bump(1)}
-          aria-label="More"
-          className="grid h-7 w-7 flex-none place-items-center rounded-full text-mute transition-colors hover:bg-surface2 hover:text-ink"
-        >
-          <PlusIcon size={13} />
-        </button>
-        <button
-          onClick={onRemove}
-          aria-label="Remove"
-          className="grid h-7 w-7 flex-none place-items-center rounded-full text-mute-soft transition-colors hover:bg-coral-soft hover:text-coral"
-        >
-          <XIcon size={13} />
-        </button>
-      </div>
+      <button
+        onClick={() => bump(-1)}
+        aria-label="Less"
+        className="grid w-8 flex-none place-items-center border-l-2 border-line hover:bg-wash"
+      >
+        <MinusIcon size={13} />
+      </button>
+      <button
+        onClick={() => bump(1)}
+        aria-label="More"
+        className="grid w-8 flex-none place-items-center border-l-2 border-line hover:bg-wash"
+      >
+        <PlusIcon size={13} />
+      </button>
+      <button
+        onClick={onRemove}
+        aria-label="Remove"
+        className="grid w-8 flex-none place-items-center border-l-2 border-line hover:bg-ink hover:text-paper"
+      >
+        <XIcon size={13} />
+      </button>
     </motion.div>
   )
 }
@@ -197,76 +194,69 @@ export function ReviewScreen({
     setTimeout(() => setCopied(false), 1600)
   }
 
-  const stats: { value: string; label: string; text: string; bg: string }[] = [
-    { value: String(activeCount), label: 'Items', text: 'text-lime', bg: 'bg-lime-soft' },
-  ]
-  if (list.estimatedCostInr > 0)
-    stats.push({
-      value: `₹${list.estimatedCostInr}`,
-      label: 'Est. cost',
-      text: 'text-amber',
-      bg: 'bg-amber-soft',
-    })
-  if (list.nutrition)
-    stats.push({
-      value: `~${Math.round(list.nutrition.caloriesPerServing)}`,
-      label: 'Kcal/serving',
-      text: 'text-grape',
-      bg: 'bg-grape-soft',
-    })
-
   return (
     <Screen>
       {/* header */}
-      <div className="flex items-center gap-2.5 px-4 pt-4 pb-2">
+      <div className="flex items-center gap-2.5 border-b-2 border-line px-4 py-3">
         <IconButton onClick={onBack} aria-label="Back">
           <ChevronLeftIcon size={16} />
         </IconButton>
         <div className="min-w-0 flex-1">
-          <h2 className="display truncate text-[17px] text-ink">{list.dish}</h2>
-          {list.cuisine && <p className="kicker text-[9px] text-mute">{list.cuisine}</p>}
+          <h2 className="mono-label truncate text-[14px]">{list.dish}</h2>
+          {list.cuisine && <p className="text-[10px] text-mute uppercase">{list.cuisine}</p>}
         </div>
         <IconButton onClick={copyList} aria-label="Copy list">
-          {copied ? <CheckIcon size={15} className="text-lime" /> : <CopyIcon size={15} />}
+          {copied ? <CheckIcon size={15} /> : <CopyIcon size={15} />}
         </IconButton>
       </div>
 
-      {/* summary + servings */}
-      <div className="px-5 pt-2">
-        <div className="grid grid-cols-3 gap-2">
-          {stats.map((s) => (
-            <div key={s.label} className={`rounded-2xl px-3 py-2.5 ${s.bg}`}>
-              <div className={`display text-[17px] tabular-nums ${s.text}`}>{s.value}</div>
-              <div className="kicker mt-0.5 text-[8.5px] text-mute">{s.label}</div>
+      {/* summary bar */}
+      <div className="mx-5 mt-3 flex divide-x-2 divide-line border-2 border-line">
+        <div className="flex-1 bg-sky-soft px-3 py-2">
+          <div className="mono-label text-[14px] tabular-nums">{activeCount}</div>
+          <div className="text-[9px] text-mute uppercase">Items</div>
+        </div>
+        {list.estimatedCostInr > 0 && (
+          <div className="flex-1 bg-lime-soft px-3 py-2">
+            <div className="mono-label text-[14px] tabular-nums">₹{list.estimatedCostInr}</div>
+            <div className="text-[9px] text-mute uppercase">Est. Cost</div>
+          </div>
+        )}
+        {list.nutrition && (
+          <div className="flex-1 bg-sun-soft px-3 py-2">
+            <div className="mono-label text-[14px] tabular-nums">
+              ~{Math.round(list.nutrition.caloriesPerServing)}
             </div>
-          ))}
-        </div>
+            <div className="text-[9px] text-mute uppercase">Kcal/Serving</div>
+          </div>
+        )}
+      </div>
 
-        <div className="mt-2.5 flex items-center rounded-2xl border border-line bg-surface px-1.5 py-1.5">
-          <span className="label flex-1 pl-2.5 text-[12px] text-ink">Servings</span>
-          <button
-            onClick={() => setServings(list.servings - 1)}
-            aria-label="Fewer servings"
-            className="grid h-8 w-8 place-items-center rounded-full text-mute transition-colors hover:bg-surface2 hover:text-ink"
-          >
-            <MinusIcon size={13} />
-          </button>
-          <motion.span
-            key={list.servings}
-            initial={{ scale: 1.25 }}
-            animate={{ scale: 1 }}
-            className="display grid w-10 place-items-center text-[16px] tabular-nums text-ink"
-          >
-            {list.servings}
-          </motion.span>
-          <button
-            onClick={() => setServings(list.servings + 1)}
-            aria-label="More servings"
-            className="grid h-8 w-8 place-items-center rounded-full text-mute transition-colors hover:bg-surface2 hover:text-ink"
-          >
-            <PlusIcon size={13} />
-          </button>
-        </div>
+      {/* servings */}
+      <div className="mx-5 mt-3 flex items-stretch border-2 border-line">
+        <span className="mono-label flex-1 px-3 py-2 text-[12px]">Servings</span>
+        <button
+          onClick={() => setServings(list.servings - 1)}
+          aria-label="Fewer servings"
+          className="grid w-10 place-items-center border-l-2 border-line hover:bg-wash"
+        >
+          <MinusIcon size={13} />
+        </button>
+        <motion.span
+          key={list.servings}
+          initial={{ scale: 1.2 }}
+          animate={{ scale: 1 }}
+          className="mono-label grid w-12 place-items-center border-x-2 border-line text-[15px] tabular-nums"
+        >
+          {list.servings}
+        </motion.span>
+        <button
+          onClick={() => setServings(list.servings + 1)}
+          aria-label="More servings"
+          className="grid w-10 place-items-center hover:bg-wash"
+        >
+          <PlusIcon size={13} />
+        </button>
       </div>
 
       <p className="mx-5 mt-3 mb-2 text-[10.5px] leading-relaxed text-mute">
@@ -275,7 +265,7 @@ export function ReviewScreen({
       </p>
 
       {/* ingredients */}
-      <div className="flex-1 space-y-2 overflow-y-auto px-5 pt-1">
+      <div className="flex-1 overflow-y-auto px-5 pt-[2px]">
         <AnimatePresence initial={false}>
           {list.ingredients.map((ingredient) => (
             <IngredientRow
@@ -299,21 +289,21 @@ export function ReviewScreen({
         </AnimatePresence>
 
         {/* add item */}
-        <div className="mb-3 flex items-center gap-2 rounded-2xl border border-dashed border-line px-3.5 py-1">
-          <PlusIcon size={13} className="flex-none text-mute-soft" />
+        <div className="mt-[2px] mb-3 flex items-center gap-2 border-2 border-dashed border-line px-3 py-1">
+          <PlusIcon size={13} className="flex-none text-mute" />
           <input
             value={newItem}
             onChange={(e) => setNewItem(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addItem()}
             placeholder="Add an ingredient…"
-            className="h-9 flex-1 bg-transparent text-[12px] text-ink outline-none placeholder:text-mute-soft"
+            className="h-8 flex-1 bg-transparent text-[12px] text-ink outline-none placeholder:text-mute-soft"
           />
         </div>
       </div>
 
       {/* footer */}
-      <div className="px-5 pt-3 pb-4">
-        <div className="card px-4 py-3">
+      <div className="border-t-2 border-line px-5 pt-3 pb-4">
+        <div className="brutal-flat px-3.5 py-2.5">
           <Toggle
             checked={settings.skipPantryStaples}
             onChange={(next) => onUpdateSettings({ ...settings, skipPantryStaples: next })}
@@ -321,34 +311,27 @@ export function ReviewScreen({
             hint="Skip salt, oil and everyday spices"
           />
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-2.5">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           {FILL_STORES.map((provider) => (
             <motion.button
               key={provider.id}
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 24 }}
+              initial={false}
+              whileHover={{ x: -2, y: -2, boxShadow: `6px 6px 0 ${provider.accent}` }}
+              whileTap={{ x: 1, y: 1, boxShadow: '0 0 0 #000000' }}
+              transition={{ duration: 0.12 }}
+              style={{ boxShadow: '3px 3px 0 #000000' }}
               disabled={fillBusy || activeCount === 0}
               onClick={() => onFill(provider.id)}
-              style={{ ['--tw-ring-color' as string]: provider.accent }}
-              className="group relative flex flex-col items-center gap-2 overflow-hidden rounded-2xl border border-line bg-surface px-2 py-3.5 text-center transition-colors hover:border-mute-soft disabled:opacity-40"
+              className="relative flex flex-col items-center gap-1.5 border-2 border-line bg-paper px-1.5 py-3 text-center disabled:opacity-40"
             >
-              <span
-                className="pointer-events-none absolute -top-8 left-1/2 h-16 w-16 -translate-x-1/2 rounded-full opacity-25 blur-2xl transition-opacity group-hover:opacity-60"
-                style={{ background: provider.accent }}
-              />
               {provider.id === 'blinkit' && (
-                <span className="citrus-fill absolute top-0 right-0 rounded-bl-xl px-2 py-0.5 text-[8px] font-bold tracking-wider text-paper">
+                <span className="tile absolute top-0 right-0 px-1.5 py-0.5 text-[8px] font-bold tracking-wider">
                   QUICKEST
                 </span>
               )}
-              <img
-                src={STORE_LOGO[provider.id]}
-                alt={provider.label}
-                className="relative h-5 max-w-full object-contain"
-              />
-              <span className="label relative flex items-center gap-1 text-[9.5px] text-ink">
-                Fill cart <CartIcon size={10} />
+              <img src={STORE_LOGO[provider.id]} alt={provider.label} className="h-5 max-w-full object-contain" />
+              <span className="flex items-center gap-1 text-[9px] font-bold text-ink uppercase">
+                Fill Cart <CartIcon size={9} />
               </span>
             </motion.button>
           ))}
