@@ -120,7 +120,9 @@ async function handleCommand(command: ContentCommand | undefined): Promise<void>
 }
 
 // Pushed commands (fast fill, watchdog advance, cancellation).
-chrome.runtime.onMessage.addListener((message: ContentCommand) => {
+chrome.runtime.onMessage.addListener((message: ContentCommand, sender) => {
+  // Defense-in-depth: only ever act on messages from our own extension.
+  if (sender.id && sender.id !== chrome.runtime.id) return
   if (message?.type === 'IDLE' || message?.type === 'JOB_COMPLETE') {
     void handleCommand(message)
   } else if ((message?.type === 'RUN_ITEM' || message?.type === 'RUN_ALL') && !busy) {

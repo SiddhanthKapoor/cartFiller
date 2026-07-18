@@ -38,6 +38,8 @@ export default defineManifest({
     'https://blinkit.com/*',
     'https://www.zeptonow.com/*',
     'https://www.zepto.com/*',
+    // MV3 grants host_permissions at host granularity — the /instamart path is
+    // not enforced here (only the content_scripts match above is path-scoped).
     'https://www.swiggy.com/instamart*',
     'https://generativelanguage.googleapis.com/*',
     'https://api.anthropic.com/*',
