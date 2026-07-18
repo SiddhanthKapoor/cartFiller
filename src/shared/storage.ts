@@ -6,10 +6,7 @@ const KEYS = {
   settings: 'cookcart.settings',
   meals: 'cookcart.meals',
   activeJob: 'cookcart.activeJob',
-  captures: 'cookcart.captures',
 } as const
-
-const MAX_CAPTURES = 30
 
 const MAX_MEALS = 30
 
@@ -64,39 +61,6 @@ export async function getSettings(): Promise<Settings> {
 
 export async function saveSettings(settings: Settings): Promise<void> {
   await chrome.storage.local.set({ [KEYS.settings]: settings })
-}
-
-// ---------- observed API captures (developer tool) ----------
-
-/** One tapped store request/response, as recorded by the page observer. */
-export interface ApiCapture {
-  at: number
-  kind: 'fetch' | 'xhr'
-  method: string
-  url: string
-  reqHeaders: Record<string, string>
-  reqBody: string | null
-  status: number
-  respBody: string
-  isCart: boolean
-}
-
-export async function getCaptures(): Promise<ApiCapture[]> {
-  const raw = await chrome.storage.local.get(KEYS.captures)
-  const list = raw[KEYS.captures]
-  return Array.isArray(list) ? (list as ApiCapture[]) : []
-}
-
-/** Append newly observed calls, keeping only the most recent MAX_CAPTURES. */
-export async function appendCaptures(items: ApiCapture[]): Promise<void> {
-  if (items.length === 0) return
-  const existing = await getCaptures()
-  const next = [...existing, ...items].slice(-MAX_CAPTURES)
-  await chrome.storage.local.set({ [KEYS.captures]: next })
-}
-
-export async function clearCaptures(): Promise<void> {
-  await chrome.storage.local.remove(KEYS.captures)
 }
 
 // ---------- saved meals (history + favorites) ----------

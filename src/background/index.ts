@@ -68,7 +68,18 @@ async function startFill(
 
   if (items.length === 0) return { ok: false, reason: 'Nothing to add' }
 
+  // Only Blinkit supports the instant one-shot fill (open, unsigned search
+  // API). Zepto/Instamart sign their requests, so they use the DOM flow.
+  const mode: FillJob['mode'] = provider === 'blinkit' ? 'fast' : 'stepwise'
+
   const urls = PROVIDER_URLS[provider]
+  // The fast (API) fill works from ANY page of the store — it fetches the
+  // search API directly, so it never needs to sit on a product's search page.
+  // Landing it on the store home (or just reloading wherever the user already
+  // is) avoids the "it keeps searching the first product" look. The step-wise
+  // DOM flow, by contrast, must start on the first item's search results.
+  const landingUrl = mode === 'fast' ? urls.origin : urls.searchUrl(items[0].searchQuery)
+
   // Reuse the tab the user is already on if it's this store — no pointless
   // second tab. Otherwise open one.
   const [active] = await chrome.tabs.query({ active: true, currentWindow: true })
@@ -78,14 +89,10 @@ async function startFill(
     tabId = active.id
     reused = true
   } else {
-    const tab = await chrome.tabs.create({ url: urls.searchUrl(items[0].searchQuery), active: true })
+    const tab = await chrome.tabs.create({ url: landingUrl, active: true })
     tabId = tab.id
   }
   if (tabId === undefined) return { ok: false, reason: 'Could not open the store tab' }
-
-  // Only Blinkit supports the instant one-shot fill (open, unsigned search
-  // API). Zepto/Instamart sign their requests, so they use the DOM flow.
-  const mode: FillJob['mode'] = provider === 'blinkit' ? 'fast' : 'stepwise'
   const job: FillJob = {
     id: crypto.randomUUID(),
     provider,
@@ -107,7 +114,10 @@ async function startFill(
   // (see commandForTab). Applies to both fast (Blinkit) and step-wise (Zepto).
   if (reused) {
     try {
-      await chrome.tabs.update(tabId, { url: urls.searchUrl(items[0].searchQuery), active: true })
+      // Fast mode: just reload wherever the user is (fresh script, no product
+      // search shown). Step-wise: navigate to the first item's results.
+      if (mode === 'fast') await chrome.tabs.reload(tabId)
+      else await chrome.tabs.update(tabId, { url: landingUrl, active: true })
     } catch {
       return { ok: false, reason: 'Could not open the store tab' }
     }
@@ -337,9 +347,13 @@ function pushToTab(tabId: number, command: ContentCommand): void {
  */
 async function reloadTabAt(job: FillJob, query: string): Promise<void> {
   try {
-    await chrome.tabs.update(job.tabId, {
-      url: PROVIDER_URLS[job.provider].searchUrl(query),
-    })
+    // Fast mode recovers from the store home (the API fill works from any
+    // page); step-wise must land on the item's search results.
+    const url =
+      job.mode === 'fast'
+        ? PROVIDER_URLS[job.provider].origin
+        : PROVIDER_URLS[job.provider].searchUrl(query)
+    await chrome.tabs.update(job.tabId, { url })
   } catch {
     await publish({ ...job, status: 'cancelled' })
     await chrome.alarms.clear(WATCHDOG_ALARM)

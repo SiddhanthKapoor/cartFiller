@@ -35,10 +35,10 @@ No per-item clicking, no scraping fragility, nothing that outpaces a human by ac
 | Store | Status | How |
 |-------|--------|-----|
 | **Blinkit** | ✅ Fast & verified | Search API + one-shot `localStorage` cart write (~1s), verified against the live cart count |
-| **Zepto** | ⚠️ Works, slower | Step-by-step DOM automation; verified against Zepto's `localStorage` cart. Needs a delivery location set on Zepto first |
+| **Zepto** | ✅ Works | In-app search (drives Zepto's own search box, no reload per item) + DOM add, verified against Zepto's `localStorage` cart. Needs a delivery location set first |
 | **Instamart** | 🚧 Experimental | Step-by-step DOM automation, not yet reliable |
 
-Only Blinkit gets the instant path — its search API is open and unsigned. Zepto and Instamart **sign** their API requests (anti-bot), so they can only be driven through the page's own UI, which is inherently slower and more fragile.
+Only Blinkit gets the sub-second path — its search API is open and unsigned. Zepto **signs** every API request (anti-bot), so it can't be called directly; CookCart instead drives Zepto's own search box (the page signs its own request) and adds through the UI — reliable, just not instant.
 
 ## Install (developer mode)
 
@@ -97,20 +97,7 @@ Design notes worth knowing:
 npm run dev              # Vite dev server with HMR
 npm test                 # vitest — matching, normalization, units, AI parsing
 npm run build            # typecheck + production build into dist/
-npm run instrument:capture / instrument:analyze   # network reverse-engineering harness
 ```
-
-### Observe store APIs (built-in)
-
-Settings → **Developer → Observe store API** installs a passive tap that runs in
-the store page's own JS context, so it sees the *real* requests the app makes —
-including the signed, authenticated ones an isolated content script can't
-reproduce. Turn it on, reload the store tab, and use the site: the store's
-**search and cart** calls (method, URL, request headers/body, response) are
-logged to that page's DevTools console and buffered so you can **Copy** them out
-as JSON. It only taps those two endpoint families — not the whole page — so the
-buffer stays small. It's inert until you switch it on. This is how Zepto's signed
-search/cart endpoints were inspected without leaving the browser.
 
 ## Roadmap
 

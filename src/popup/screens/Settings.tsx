@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import type { Settings } from '@/shared/types'
 import { AI_PROVIDER_LIST, AI_PROVIDERS, defaultModelFor } from '@/shared/aiProviders'
-import { clearCaptures, getCaptures } from '@/shared/storage'
 import { Field, IconButton, PrimaryButton, Screen, inputClass } from '../components/ui'
 import { ChevronLeftIcon, EyeIcon } from '../components/icons'
 import { AI_LOGO } from '../assets/brands'
@@ -45,81 +44,6 @@ function GeminiKeyHelp() {
           </motion.ol>
         )}
       </AnimatePresence>
-    </div>
-  )
-}
-
-/** Developer tap: mirror store API calls to the page console + a copy buffer. */
-function DeveloperSection({
-  on,
-  onToggle,
-}: {
-  on: boolean
-  onToggle: (next: boolean) => void
-}) {
-  const [count, setCount] = useState(0)
-  const [copied, setCopied] = useState(false)
-
-  const refresh = () => getCaptures().then((c) => setCount(c.length)).catch(() => undefined)
-  useEffect(() => {
-    void refresh()
-    const t = setInterval(refresh, 1500)
-    return () => clearInterval(t)
-  }, [])
-
-  const copy = async () => {
-    const captures = await getCaptures()
-    await navigator.clipboard.writeText(JSON.stringify(captures, null, 2))
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1200)
-  }
-  const clear = async () => {
-    await clearCaptures()
-    void refresh()
-  }
-
-  return (
-    <div className="border-2 border-line px-3.5 py-3">
-      <div className="flex items-center justify-between">
-        <span className="mono-label text-[11px] text-ink">Observe store API</span>
-        <button
-          role="switch"
-          aria-checked={on}
-          onClick={() => onToggle(!on)}
-          style={{ boxShadow: '2px 2px 0 #000000' }}
-          className={`relative h-6 w-11 border-2 border-line transition-colors ${on ? 'bg-accent' : 'bg-paper'}`}
-        >
-          <span
-            className="absolute top-0.5 h-4 w-4 border-2 border-line bg-paper transition-all"
-            style={{ left: on ? '20px' : '2px' }}
-          />
-        </button>
-      </div>
-      <p className="mt-2 text-[11px] leading-relaxed text-mute">
-        Logs each store's real API calls (headers, body, response) to that page's
-        DevTools console and a copy buffer. Turn on, reload the store tab, then use
-        the site. For signed stores like Zepto this reveals the exact requests the
-        app makes.
-      </p>
-      {on && (
-        <div className="mt-2.5 flex items-center gap-2">
-          <button
-            onClick={copy}
-            disabled={count === 0}
-            style={{ boxShadow: count ? '2px 2px 0 #000000' : 'none' }}
-            className="mono-label border-2 border-line px-2.5 py-1.5 text-[10.5px] text-ink hover:bg-wash disabled:opacity-40"
-          >
-            {copied ? 'Copied ✓' : `Copy ${count} call${count === 1 ? '' : 's'}`}
-          </button>
-          <button
-            onClick={clear}
-            disabled={count === 0}
-            className="mono-label border-2 border-line px-2.5 py-1.5 text-[10.5px] text-ink hover:bg-wash disabled:opacity-40"
-          >
-            Clear
-          </button>
-        </div>
-      )}
     </div>
   )
 }
@@ -191,7 +115,7 @@ export function SettingsScreen({
                 <button
                   key={p.key}
                   onClick={() => selectProvider(p.key)}
-                  style={{ boxShadow: active ? '3px 3px 0 #219ebd' : '2px 2px 0 #000000' }}
+                  style={{ boxShadow: active ? '3px 3px 0 #e0542b' : '2px 2px 0 #000000' }}
                   className={`relative flex items-center gap-1.5 border-2 border-line px-2 py-2 text-[10.5px] transition-colors ${
                     active ? 'bg-accent-soft text-ink' : 'bg-paper text-ink hover:bg-wash'
                   }`}
@@ -273,15 +197,6 @@ export function SettingsScreen({
           <span className="mt-2 block text-[11px] leading-relaxed text-mute">
             Applied to every dish unless the request names its own budget. Slide to ₹0 to turn off.
           </span>
-        </div>
-
-        {/* developer */}
-        <div>
-          <span className="mono-label mb-2 block text-[11px] text-ink">Developer</span>
-          <DeveloperSection
-            on={draft.observeApi}
-            onToggle={(next) => setDraft({ ...draft, observeApi: next })}
-          />
         </div>
       </div>
 
