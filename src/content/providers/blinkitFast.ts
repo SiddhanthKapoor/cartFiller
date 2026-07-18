@@ -87,10 +87,14 @@ async function searchProducts(
   } catch {
     return []
   }
-  // Rate limited (happens when the same list is filled again quickly) —
-  // back off with jitter and retry generously so items don't get dropped.
-  if ((res.status === 429 || res.status === 503) && attempt < 5) {
-    const backoff = Math.min(4_000, 500 * 2 ** attempt) + Math.random() * 400
+  // Rate limited (happens when the same list is filled again quickly) — back
+  // off and retry generously so items don't get silently dropped. Honour the
+  // server's Retry-After when present; otherwise exponential backoff + jitter.
+  if ((res.status === 429 || res.status === 503) && attempt < 6) {
+    const retryAfter = Number(res.headers.get('retry-after'))
+    const backoff = Number.isFinite(retryAfter) && retryAfter > 0
+      ? Math.min(8_000, retryAfter * 1000)
+      : Math.min(6_000, 500 * 2 ** attempt) + Math.random() * 400
     await new Promise((r) => setTimeout(r, backoff))
     return searchProducts(query, headers, attempt + 1)
   }
@@ -210,13 +214,23 @@ function writeCart(chosen: Chosen[]): void {
   for (const c of chosen) {
     if (!c.cartItem) continue
     const key = String(c.cartItem.product_id)
-    const existingQty = items[key]?.quantity ?? 0
+    // Existing entries may not be in our shape (Blinkit rewrites the cart on
+    // reload) — read the quantity defensively, never assume `.product`.
+    const prev = items[key] as { quantity?: number } | undefined
+    const existingQty = typeof prev?.quantity === 'number' ? prev.quantity : 0
     items[key] = { product: c.cartItem, quantity: Math.max(existingQty, c.quantity) }
   }
 
-  const values = Object.values(items)
-  const count = values.reduce((s, x) => s + x.quantity, 0)
-  const total = values.reduce((s, x) => s + (x.product.price || 0) * x.quantity, 0)
+  // Guard every read: a foreign-shaped entry (no `.product`, no numeric
+  // `.quantity`) must never throw here — a throw aborts the whole fill and the
+  // cart silently doesn't fill. This is the "stops working after a refresh"
+  // case, since after the first fill+reload the cart holds Blinkit's own entries.
+  const values = Object.values(items) as Array<{ product?: { price?: number }; quantity?: number }>
+  const count = values.reduce((s, x) => s + (typeof x?.quantity === 'number' ? x.quantity : 0), 0)
+  const total = values.reduce(
+    (s, x) => s + (x?.product?.price ?? 0) * (typeof x?.quantity === 'number' ? x.quantity : 0),
+    0,
+  )
 
   const next: StoredCart = {
     count,

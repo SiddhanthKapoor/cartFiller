@@ -64,7 +64,9 @@ async function handleCommand(command: ContentCommand | undefined): Promise<void>
             blinkitFastFill(
               command.items.map((it) => ({ ingredient: it.ingredient, searchQuery: it.searchQuery })),
             ),
-            sleep(40_000).then(() => skipAll('Timed out')),
+            // Generous ceiling so rate-limit retries (up to ~20s/item, bounded
+            // concurrency) complete instead of being cut to "Timed out".
+            sleep(55_000).then(() => skipAll('Timed out')),
           ])
         } catch {
           results = skipAll('Fill failed')

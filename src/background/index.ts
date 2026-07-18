@@ -170,6 +170,7 @@ async function onFillDone(
 
   job.status = 'done'
   job.lastProgressAt = Date.now()
+  await chrome.alarms.clear(WATCHDOG_ALARM)
   await publish(job)
   return { type: 'JOB_COMPLETE', overlay: overlayFrom(job) }
 }
@@ -189,7 +190,15 @@ async function cancelFill(): Promise<{ ok: boolean }> {
 async function commandForTab(tabId: number | undefined): Promise<ContentCommand> {
   const job = await getActiveJob()
   if (!job || tabId === undefined || job.tabId !== tabId) return { type: 'IDLE' }
-  if (job.status === 'done') return { type: 'JOB_COMPLETE', overlay: overlayFrom(job) }
+  if (job.status === 'done') {
+    // Show the "cart filled" overlay exactly once (on the auto-reload right
+    // after the fill). A finished job stays in storage for the popup, but
+    // re-covering the page on every later manual refresh reads as "broken".
+    if (job.overlayShown) return { type: 'IDLE' }
+    job.overlayShown = true
+    await setActiveJob(job)
+    return { type: 'JOB_COMPLETE', overlay: overlayFrom(job) }
+  }
   if (job.status !== 'running') return { type: 'IDLE' }
   // Fast mode: hand the whole list to the fresh content script once (it
   // reloads the page after writing the cart, and re-announces here — by then
@@ -337,7 +346,9 @@ async function reloadTabAt(job: FillJob, query: string): Promise<void> {
   }
 }
 
-const FAST_TIMEOUT_MS = 45_000
+// Must exceed the content script's own fast-fill ceiling (55s) so the watchdog
+// never reloads the tab mid-fill while retries are still in flight.
+const FAST_TIMEOUT_MS = 65_000
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name !== WATCHDOG_ALARM) return

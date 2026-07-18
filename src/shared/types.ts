@@ -131,6 +131,13 @@ export interface FillJob {
   fastRetries?: number
   /** set once a failed fast (API) fill has fallen back to the DOM click flow */
   fellBackToDom?: boolean
+  /**
+   * Set once the "cart filled" overlay has been shown to the tab. A finished
+   * job lingers in storage (so the popup can show its result), but the on-page
+   * overlay must appear only once — otherwise every later refresh of the store
+   * re-covers the page with a stale completion overlay.
+   */
+  overlayShown?: boolean
 }
 
 // ---------- Settings ----------
