@@ -144,7 +144,10 @@ chrome.runtime.onMessage.addListener((message: ContentCommand, sender) => {
  */
 function looksBroken(): boolean {
   const body = (document.body?.innerText ?? '').slice(0, 800).toLowerCase()
-  if (document.body && document.body.innerText.trim().length < 40) return true
+  // ONLY an explicit error page counts as broken. A near-empty body is almost
+  // always just Blinkit's SPA still rendering (especially the search page) —
+  // reloading it wastes seconds, and the fast fill uses the API and doesn't
+  // need the DOM to have painted anyway.
   return /(502|503|504|bad gateway|gateway time-?out|service unavailable|temporarily unavailable|something went wrong|site can'?t be reached|try again)/.test(
     body,
   )

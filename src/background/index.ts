@@ -73,12 +73,11 @@ async function startFill(
   const mode: FillJob['mode'] = provider === 'blinkit' ? 'fast' : 'stepwise'
 
   const urls = PROVIDER_URLS[provider]
-  // The fast (API) fill works from ANY page of the store — it fetches the
-  // search API directly, so it never needs to sit on a product's search page.
-  // Landing it on the store home (or just reloading wherever the user already
-  // is) avoids the "it keeps searching the first product" look. The step-wise
-  // DOM flow, by contrast, must start on the first item's search results.
-  const landingUrl = mode === 'fast' ? urls.origin : urls.searchUrl(items[0].searchQuery)
+  // Land (and later reload) on the first item's SEARCH page. For Blinkit this
+  // is load-bearing, not cosmetic: reloading on the home page makes the app
+  // re-initialise an empty cart and discard the cart we wrote, whereas the
+  // search page preserves it. So the fast fill must sit on a search page.
+  const landingUrl = urls.searchUrl(items[0].searchQuery)
 
   // Reuse the tab the user is already on if it's this store — no pointless
   // second tab. Otherwise open one.
@@ -114,9 +113,13 @@ async function startFill(
   // (see commandForTab). Applies to both fast (Blinkit) and step-wise (Zepto).
   if (reused) {
     try {
-      // Fast mode: just reload wherever the user is (fresh script, no product
-      // search shown). Step-wise: navigate to the first item's results.
-      if (mode === 'fast') await chrome.tabs.reload(tabId)
+      // Guarantee a FRESH content script every time (a script orphaned by an
+      // extension reload silently ignores the fill). Both branches reload the
+      // tab: reload() if it's already on a search page (keeps the cart-safe
+      // search-page landing), otherwise navigate to one. This is robust to
+      // URL-string differences that an exact match would miss.
+      const onSearchPage = active?.url ? urls.isSearchPage(new URL(active.url)) : false
+      if (onSearchPage) await chrome.tabs.reload(tabId)
       else await chrome.tabs.update(tabId, { url: landingUrl, active: true })
     } catch {
       return { ok: false, reason: 'Could not open the store tab' }
@@ -214,12 +217,15 @@ async function commandForTab(tabId: number | undefined): Promise<ContentCommand>
   // reloads the page after writing the cart, and re-announces here — by then
   // the job is done and it gets JOB_COMPLETE above).
   if (job.mode === 'fast') {
-    // Dispatch the whole-cart write exactly once. A second live announcement
-    // for the same running job (a stray reload that didn't finish the fill)
-    // must not re-run it. The watchdog resets `dispatched` before it retries.
-    if (job.dispatched) return { type: 'IDLE' }
-    job.dispatched = true
-    await setActiveJob(job)
+    // Re-hand the list on EVERY announce while running. If Blinkit reloads the
+    // search page mid-fill (its SPA does), the fresh content script must get
+    // RUN_ALL again — otherwise the fill silently never runs. The content-side
+    // `busy` flag stops a genuine double-run within one page life, and a
+    // re-write is idempotent (same items, Math.max quantity).
+    if (!job.dispatched) {
+      job.dispatched = true
+      await setActiveJob(job)
+    }
     return runAllCommand(job)
   }
   return runCommand(job)
@@ -349,13 +355,11 @@ function pushToTab(tabId: number, command: ContentCommand): void {
  */
 async function reloadTabAt(job: FillJob, query: string): Promise<void> {
   try {
-    // Fast mode recovers from the store home (the API fill works from any
-    // page); step-wise must land on the item's search results.
-    const url =
-      job.mode === 'fast'
-        ? PROVIDER_URLS[job.provider].origin
-        : PROVIDER_URLS[job.provider].searchUrl(query)
-    await chrome.tabs.update(job.tabId, { url })
+    // Always the search page — for Blinkit's fast fill this is what makes the
+    // written cart survive the reload (home re-initialises an empty cart).
+    await chrome.tabs.update(job.tabId, {
+      url: PROVIDER_URLS[job.provider].searchUrl(query),
+    })
   } catch {
     await publish({ ...job, status: 'cancelled' })
     await chrome.alarms.clear(WATCHDOG_ALARM)
