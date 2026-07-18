@@ -5,6 +5,10 @@
 CookCart AI is a Chrome extension that turns a dish into a ready-to-checkout cart on India's quick-commerce apps. You type _"Chicken Biryani for 4"_, an LLM works out every ingredient in realistic cooking quantities, you review and tweak the list, and one click fills your **Blinkit** cart in about a second — on your own logged-in session.
 
 <p align="center">
+  <img src="docs/cookcart-demo.gif" width="80%" alt="CookCart AI — a dish typed into the popup, ingredients generated, and the Blinkit cart filling in one click" />
+</p>
+
+<p align="center">
   <img src="docs/screenshots/home.png" width="30%" alt="Home — what do you want to cook?" />
   <img src="docs/screenshots/review.png" width="30%" alt="Review — editable ingredient list" />
   <img src="docs/screenshots/settings.png" width="30%" alt="Settings — bring your own AI key" />
