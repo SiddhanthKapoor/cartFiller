@@ -166,7 +166,7 @@ export function toShoppingList(response: AiResponse): ShoppingList {
     const normalized = normalizeIngredient(item.name)
     const displayName = normalized.canonical
       .split(' ')
-      .map((w) => w[0].toUpperCase() + w.slice(1))
+      .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
       .join(' ')
 
     const existing = merged.get(normalized.canonical)

@@ -93,7 +93,7 @@ export async function runItem(command: RunItemCommand): Promise<ItemOutcome> {
   const { card, best } = pick
 
   // Ground-truth cart size before we touch anything (Zepto exposes this in
-  // localStorage; Instamart doesn't, so we fall back to the DOM signal).
+  // localStorage; other providers fall back to the DOM signal).
   const provider = command.provider
   const countBefore = storeCartCount(provider)
   const canVerify = countBefore !== null

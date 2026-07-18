@@ -52,7 +52,7 @@ function OnboardingTip() {
           </span>
           <div className="flex-1">
             <p className="text-[11.5px] leading-relaxed text-ink">
-              Open your store (Blinkit / Zepto / Instamart), be{' '}
+              Open your store (Blinkit / Zepto), be{' '}
               <span className="mono-label">logged in</span> with a{' '}
               <span className="mono-label">delivery location</span> set. CookCart fills the cart on
               your own session — it never sees your login.
@@ -107,6 +107,11 @@ export function HomeScreen({
   const submit = (text: string) => {
     const trimmed = text.trim()
     if (!trimmed || generate.isPending) return
+    // No key yet → send them to Settings instead of throwing an AiError.
+    if (!hasKey) {
+      onOpenSettings()
+      return
+    }
     generate.mutate(trimmed)
   }
 
@@ -233,7 +238,7 @@ export function HomeScreen({
                     key={s}
                     onClick={() => {
                       setQuery(s)
-                      if (hasKey) submit(s)
+                      submit(s)
                     }}
                     style={{ boxShadow: '2px 2px 0 #000000' }}
                     className={`border-2 border-line px-2.5 py-1 text-[11px] text-ink transition-colors ${CHIP_COLORS[i % CHIP_COLORS.length]}`}
@@ -269,7 +274,8 @@ export function HomeScreen({
                         </button>
                         <button
                           onClick={() => onToggleFavorite(meal.list.id)}
-                          aria-label="Favorite"
+                          aria-pressed={meal.favorite}
+                          aria-label={meal.favorite ? 'Remove from favorites' : 'Add to favorites'}
                           className={`my-1 grid w-8 place-items-center border-l-2 border-line ${meal.favorite ? 'bg-sun text-ink' : 'hover:bg-sun-soft'}`}
                         >
                           <StarIcon size={13} filled={meal.favorite} />

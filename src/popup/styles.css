@@ -19,7 +19,7 @@
   --color-lime-soft: #c9ecd0;
   --color-sky: #e0542b; /* alias of accent (used by summary tiles) */
   --color-sky-soft: #f8dccc;
-  --color-berry: #6d28d9; /* purple — Zepto */
+  --color-berry: #9b5de5; /* purple — Zepto (matches PROVIDERS.zepto.accent) */
   --color-berry-soft: #e4d5fb;
 
   --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Roboto Mono', Menlo,
@@ -106,16 +106,6 @@ body {
   text-transform: uppercase;
 }
 
-.shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--color-wash) 25%,
-    #e6e6e3 50%,
-    var(--color-wash) 75%
-  );
-  background-size: 200% 100%;
-  animation: var(--animate-shimmer);
-}
 
 /* range input, brutalist */
 input[type='range'] {

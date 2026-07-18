@@ -69,7 +69,7 @@ async function startFill(
   if (items.length === 0) return { ok: false, reason: 'Nothing to add' }
 
   // Only Blinkit supports the instant one-shot fill (open, unsigned search
-  // API). Zepto/Instamart sign their requests, so they use the DOM flow.
+  // API). Zepto signs its requests, so it uses the DOM flow.
   const mode: FillJob['mode'] = provider === 'blinkit' ? 'fast' : 'stepwise'
 
   const urls = PROVIDER_URLS[provider]
@@ -214,10 +214,12 @@ async function commandForTab(tabId: number | undefined): Promise<ContentCommand>
   // reloads the page after writing the cart, and re-announces here — by then
   // the job is done and it gets JOB_COMPLETE above).
   if (job.mode === 'fast') {
-    if (!job.dispatched) {
-      job.dispatched = true
-      await setActiveJob(job)
-    }
+    // Dispatch the whole-cart write exactly once. A second live announcement
+    // for the same running job (a stray reload that didn't finish the fill)
+    // must not re-run it. The watchdog resets `dispatched` before it retries.
+    if (job.dispatched) return { type: 'IDLE' }
+    job.dispatched = true
+    await setActiveJob(job)
     return runAllCommand(job)
   }
   return runCommand(job)

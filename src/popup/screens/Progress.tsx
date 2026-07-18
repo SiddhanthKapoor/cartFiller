@@ -41,7 +41,7 @@ export function ProgressScreen({
           </span>
           {finished ? (job.status === 'done' ? `${provider.label} · Cart Filled` : 'Stopped') : `Filling ${provider.label}`}
         </p>
-        <h2 className="mono-label mt-1.5 text-[20px]">{job.dish}</h2>
+        <h2 className="mono-label mt-1.5 truncate text-[20px]">{job.dish}</h2>
 
         {/* progress bar */}
         <div className="mt-4 h-3 border-2 border-line">
@@ -67,7 +67,7 @@ export function ProgressScreen({
       <div className="flex-1 overflow-y-auto px-5 py-3">
         {job.items.map((item, index) => (
           <motion.div
-            key={index}
+            key={item.ingredient.id ?? index}
             layout
             className={`flex items-center gap-2.5 border-2 px-3 py-2 ${
               item.status === 'running' ? 'border-line bg-wash' : 'border-transparent'

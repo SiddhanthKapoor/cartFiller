@@ -2,7 +2,6 @@ import type { OverlayState } from '@/shared/messages'
 import type { ProviderId } from '@/shared/types'
 import blinkitLogo from '@/popup/assets/brands/blinkit.svg?raw'
 import zeptoLogo from '@/popup/assets/brands/zepto.svg?raw'
-import swiggyLogo from '@/popup/assets/brands/swiggy.svg?raw'
 
 /**
  * Floating progress card rendered into a shadow root so the host page's
@@ -12,12 +11,10 @@ import swiggyLogo from '@/popup/assets/brands/swiggy.svg?raw'
 const STORE_LOGO: Record<ProviderId, string> = {
   blinkit: blinkitLogo,
   zepto: zeptoLogo,
-  instamart: swiggyLogo,
 }
 const STORE_ACCENT: Record<ProviderId, string> = {
   blinkit: '#ffc53d',
   zepto: '#9b5de5',
-  instamart: '#219ebd',
 }
 
 let host: HTMLDivElement | null = null

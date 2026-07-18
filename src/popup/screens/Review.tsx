@@ -7,7 +7,7 @@ import { normalizeIngredient } from '@/shared/normalize'
 import { IconButton, Screen, Toggle } from '../components/ui'
 import { STORE_LOGO } from '../assets/brands'
 
-// Blinkit is the fast, reliable path; Zepto second. (Instamart omitted for now.)
+// Blinkit is the fast, reliable path; Zepto second.
 const FILL_STORES = [PROVIDERS.blinkit, PROVIDERS.zepto]
 import {
   CartIcon,
@@ -93,7 +93,8 @@ function IngredientRow({
       <button
         onClick={() => bump(-1)}
         aria-label="Less"
-        className="grid w-8 flex-none place-items-center border-l-2 border-line hover:bg-wash"
+        disabled={ingredient.quantity - step <= 0}
+        className="grid w-8 flex-none place-items-center border-l-2 border-line hover:bg-wash disabled:opacity-30 disabled:hover:bg-transparent"
       >
         <MinusIcon size={13} />
       </button>
@@ -238,7 +239,8 @@ export function ReviewScreen({
         <button
           onClick={() => setServings(list.servings - 1)}
           aria-label="Fewer servings"
-          className="grid w-10 place-items-center border-l-2 border-line hover:bg-wash"
+          disabled={list.servings <= 1}
+          className="grid w-10 place-items-center border-l-2 border-line hover:bg-wash disabled:opacity-30 disabled:hover:bg-transparent"
         >
           <MinusIcon size={13} />
         </button>
@@ -253,7 +255,8 @@ export function ReviewScreen({
         <button
           onClick={() => setServings(list.servings + 1)}
           aria-label="More servings"
-          className="grid w-10 place-items-center hover:bg-wash"
+          disabled={list.servings >= 50}
+          className="grid w-10 place-items-center hover:bg-wash disabled:opacity-30 disabled:hover:bg-transparent"
         >
           <PlusIcon size={13} />
         </button>
@@ -311,6 +314,11 @@ export function ReviewScreen({
             hint="Skip salt, oil and everyday spices"
           />
         </div>
+        {activeCount === 0 && (
+          <p className="mt-3 text-center text-[11px] leading-relaxed text-mute">
+            Nothing to fill — {settings.skipPantryStaples ? 'turn off “I have the basics” or add' : 'add'} an ingredient above.
+          </p>
+        )}
         <div className="mt-3 grid grid-cols-2 gap-2">
           {FILL_STORES.map((provider) => (
             <motion.button

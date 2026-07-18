@@ -3,12 +3,10 @@ import { providerForUrl } from '@/shared/providers'
 import type { ProviderAdapter } from './adapter'
 import { blinkit } from './blinkit'
 import { zepto } from './zepto'
-import { instamart } from './instamart'
 
 const ADAPTERS: Record<ProviderId, ProviderAdapter> = {
   blinkit,
   zepto,
-  instamart,
 }
 
 export function adapterFor(id: ProviderId): ProviderAdapter {

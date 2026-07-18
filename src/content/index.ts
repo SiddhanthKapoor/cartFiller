@@ -58,14 +58,20 @@ async function handleCommand(command: ContentCommand | undefined): Promise<void>
       if (!(await waitForBlinkitReady())) {
         results = skipAll('Open Blinkit and set a delivery location first')
       } else {
+        const abort = new AbortController()
         try {
           results = await Promise.race([
             blinkitFastFill(
               command.items.map((it) => ({ ingredient: it.ingredient, searchQuery: it.searchQuery })),
+              abort.signal,
             ),
             // Generous ceiling so rate-limit retries (up to ~20s/item, bounded
-            // concurrency) complete instead of being cut to "Timed out".
-            sleep(55_000).then(() => skipAll('Timed out')),
+            // concurrency) complete instead of being cut to "Timed out". On
+            // timeout, abort so the loser can't still write the cart.
+            sleep(55_000).then(() => {
+              abort.abort()
+              return skipAll('Timed out')
+            }),
           ])
         } catch {
           results = skipAll('Fill failed')

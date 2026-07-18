@@ -48,6 +48,20 @@ function priceFromText(text: string | undefined): number | null {
   return m ? Number(m[1].replace(/,/g, '')) : null
 }
 
+/**
+ * Drop sold-out products and re-number `cardIndex` so it stays equal to the
+ * array position. The ranker returns a `cardIndex` used to index this same
+ * array afterwards, so a stale pre-filter index would select the wrong
+ * product (or an undefined one). Pure + tested.
+ */
+export function dropSoldOut(products: BlinkitApiProduct[]): BlinkitApiProduct[] {
+  const kept = products.filter((p) => !p.soldOut)
+  kept.forEach((p, i) => {
+    p.scraped.cardIndex = i
+  })
+  return kept
+}
+
 /** Parse a /v1/layout/search response into ranked-ready products + cart items. */
 export function parseBlinkitSearch(json: unknown): BlinkitApiProduct[] {
   const snippets = (json as { response?: { snippets?: Snippet[] } })?.response?.snippets

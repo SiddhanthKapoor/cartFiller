@@ -1,7 +1,7 @@
 import { chooseBest } from '@/shared/matching'
 import type { Ingredient } from '@/shared/types'
-import { toBase } from '@/shared/units'
 import {
+  dropSoldOut,
   parseBlinkitSearch,
   type BlinkitApiProduct,
   type BlinkitCartItem,
@@ -99,19 +99,7 @@ async function searchProducts(
     return searchProducts(query, headers, attempt + 1)
   }
   if (!res.ok) return []
-  return parseBlinkitSearch(await res.json().catch(() => null)).filter((p) => !p.soldOut)
-}
-
-/** How many packs of the chosen product to cover the recipe quantity. */
-function unitsFor(ingredient: Ingredient, product: BlinkitApiProduct): number {
-  const pack = product.cartItem.unit
-  const packMatch = pack ? /(\d+(?:\.\d+)?)\s*(kg|g|ml|l)\b/i.exec(pack) : null
-  if (!packMatch) return 1
-  const packBase =
-    Number(packMatch[1]) * (/kg|l/i.test(packMatch[2]) ? 1000 : 1)
-  const need = toBase(ingredient.quantity, ingredient.unit)
-  if (need.dimension === 'count' || packBase <= 0) return 1
-  return Math.min(5, Math.max(1, Math.ceil(need.value / packBase)))
+  return dropSoldOut(parseBlinkitSearch(await res.json().catch(() => null)))
 }
 
 export interface FastItem {
@@ -164,7 +152,10 @@ async function chooseAll(items: FastItem[]): Promise<Chosen[]> {
         continue
       }
       const product = products[best.cardIndex]
-      const quantity = unitsFor(ingredient, product)
+      // Use the shared ranking engine's pack math (handles count items like
+      // eggs, multipacks, and count↔mass) so fast (Blinkit) and DOM (Zepto)
+      // fills buy the same quantity for the same recipe.
+      const quantity = Math.max(1, best.unitsToAdd)
       out[index] = {
         quantity,
         cartItem: product.cartItem,
@@ -252,9 +243,16 @@ function writeCart(chosen: Chosen[]): void {
 /**
  * Fill the whole cart. Returns per-item results. Writes localStorage.cart but
  * does NOT reload — the caller reloads so the app hydrates the new cart.
+ *
+ * If `signal` aborts before the write (e.g. the caller's timeout already won
+ * and the job fell back to the DOM flow), we skip the cart write so a
+ * superseded fill can't clobber the cart the fallback is building.
  */
-export async function blinkitFastFill(items: FastItem[]): Promise<FastResult[]> {
+export async function blinkitFastFill(
+  items: FastItem[],
+  signal?: AbortSignal,
+): Promise<FastResult[]> {
   const chosen = await chooseAll(items)
-  writeCart(chosen)
+  if (!signal?.aborted) writeCart(chosen)
   return chosen.map((c) => c.result)
 }

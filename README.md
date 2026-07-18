@@ -34,9 +34,8 @@ No per-item clicking, no scraping fragility, nothing that outpaces a human by ac
 
 | Store | Status | How |
 |-------|--------|-----|
-| **Blinkit** | ✅ Fast & verified | Search API + one-shot `localStorage` cart write (~1s), verified against the live cart count |
+| **Blinkit** | ✅ Fast | Search API + one-shot `localStorage` cart write, reloaded so the app hydrates it (~1s). If the API adds nothing it falls back to the DOM flow, which verifies each add against the live cart count |
 | **Zepto** | ✅ Works | In-app search (drives Zepto's own search box, no reload per item) + DOM add, verified against Zepto's `localStorage` cart. Needs a delivery location set first |
-| **Instamart** | 🚧 Experimental | Step-by-step DOM automation, not yet reliable |
 
 Only Blinkit gets the sub-second path — its search API is open and unsigned. Zepto **signs** every API request (anti-bot), so it can't be called directly; CookCart instead drives Zepto's own search box (the page signs its own request) and adds through the UI — reliable, just not instant.
 
@@ -78,7 +77,7 @@ src/
 ├── background/    service worker — job orchestration, watchdog, tab management
 ├── content/       runs inside store pages
 │   ├── providers/ per-store logic (Blinkit fast fill, DOM adapters, cart readers)
-│   ├── runner.ts  step-wise DOM fill for Zepto/Instamart
+│   ├── runner.ts  step-wise DOM fill for Zepto
 │   └── overlay.ts shadow-DOM progress overlay
 ├── popup/         React UI (home / review / progress / settings)
 └── shared/        types, messages, units, normalization, matching engine, storage
@@ -109,8 +108,9 @@ Planned, not yet built:
   your preferred product (brand + pack size) automatically instead of re-guessing.
   Preferences are stored per store, on your device, and you can always override
   again. Over time the cart fills the way _you_ shop, not the way the ranker guesses.
-- **Zepto & Instamart on the fast path.** Bring both to the same one-shot
-  `localStorage` fill Blinkit uses (see [Store support](#store-support)).
+- **Zepto on the fast path.** Bring it to the same one-shot `localStorage` fill
+  Blinkit uses (see [Store support](#store-support)).
+- **More stores.** Add Instamart and others once each is reliable.
 - **Smarter substitutions.** When a preferred or matched product is out of stock,
   fall back to the closest in-stock option instead of skipping the item.
 - **Pantry memory.** Remember the staples you marked as "already have" so you
@@ -124,7 +124,7 @@ Planned, not yet built:
 
 ## Trademarks & terms
 
-CookCart AI is an independent project, **not affiliated with or endorsed by** Blinkit, Zepto, or Swiggy. Store and AI-provider logos are the trademarks of their respective owners and are used here only to identify the services the extension works with. Automating your own cart may be against a store's Terms of Service — use it for your own personal grocery shopping, at human-plausible pace, on your own account. This is a personal-use interoperability tool, not a scraping or resale service.
+CookCart AI is an independent project, **not affiliated with or endorsed by** Blinkit or Zepto. Store and AI-provider logos are the trademarks of their respective owners and are used here only to identify the services the extension works with. Automating your own cart may be against a store's Terms of Service — use it for your own personal grocery shopping, at human-plausible pace, on your own account. This is a personal-use interoperability tool, not a scraping or resale service.
 
 ## License
 

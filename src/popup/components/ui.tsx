@@ -20,7 +20,7 @@ export function PrimaryButton({
     <motion.button
       {...press}
       style={{ boxShadow: '4px 4px 0 #000000' }}
-      className={`mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-line bg-accent text-[13px] text-paper disabled:opacity-40 ${className}`}
+      className={`mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-line bg-accent text-[13px] text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:opacity-40 ${className}`}
       {...props}
     >
       {children}
@@ -37,7 +37,7 @@ export function GhostButton({
     <motion.button
       {...press}
       style={{ boxShadow: '4px 4px 0 #000000' }}
-      className={`mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-line bg-paper text-[13px] text-ink disabled:opacity-40 ${className}`}
+      className={`mono-label flex h-12 w-full items-center justify-center gap-2 border-2 border-line bg-paper text-[13px] text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:opacity-40 ${className}`}
       {...props}
     >
       {children}
@@ -52,7 +52,7 @@ export function IconButton({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode }) {
   return (
     <button
-      className={`grid h-9 w-9 flex-none place-items-center border-2 border-line bg-paper text-ink transition-colors hover:bg-ink hover:text-paper ${className}`}
+      className={`grid h-9 w-9 flex-none place-items-center border-2 border-line bg-paper text-ink transition-colors hover:bg-ink hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${className}`}
       {...props}
     >
       {children}

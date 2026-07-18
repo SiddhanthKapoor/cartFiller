@@ -1,6 +1,5 @@
 import blinkit from './brands/blinkit.svg'
 import zepto from './brands/zepto.svg'
-import swiggy from './brands/swiggy.svg'
 import gemini from './brands/gemini.svg'
 import claude from './brands/claude.svg'
 import openai from './brands/openai.svg'
@@ -21,5 +20,4 @@ export const AI_LOGO: Record<AiProviderKey, string> = {
 export const STORE_LOGO: Record<ProviderId, string> = {
   blinkit,
   zepto,
-  instamart: swiggy,
 }

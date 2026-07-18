@@ -86,7 +86,7 @@ export default function App() {
             key="progress"
             job={job}
             onCancel={() => void cancel()}
-            onDone={() => setScreen(list ? 'review' : 'home')}
+            onDone={() => setScreen('home')}
           />
         )}
 

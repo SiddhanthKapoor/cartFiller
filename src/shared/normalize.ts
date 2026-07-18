@@ -142,7 +142,7 @@ const C = (
 
 /**
  * Curated dictionary tuned for Indian quick-commerce catalogues.
- * `search` is what actually returns good results on Blinkit/Zepto/Instamart.
+ * `search` is what actually returns good results on Blinkit/Zepto.
  */
 const CANONICAL: CanonicalEntry[] = [
   // --- produce ---

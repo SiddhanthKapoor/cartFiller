@@ -52,7 +52,7 @@ export interface ShoppingList {
   createdAt: number
 }
 
-export type ProviderId = 'blinkit' | 'zepto' | 'instamart'
+export type ProviderId = 'blinkit' | 'zepto'
 
 export interface ProviderMeta {
   id: ProviderId
@@ -73,12 +73,6 @@ export const PROVIDERS: Record<ProviderId, ProviderMeta> = {
     label: 'Zepto',
     host: 'www.zeptonow.com',
     accent: '#9b5de5', // purple
-  },
-  instamart: {
-    id: 'instamart',
-    label: 'Instamart',
-    host: 'www.swiggy.com',
-    accent: '#ff6a4d',
   },
 }
 

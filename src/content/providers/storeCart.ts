@@ -24,7 +24,7 @@ export function storeCartCount(provider: ProviderId): number | null {
         0,
       )
     }
-    return null // Instamart: no known localStorage cart — fall back to DOM signal
+    return null // unknown provider — fall back to the DOM signal
   } catch {
     return null
   }

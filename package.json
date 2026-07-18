@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Type any dish. CookCart AI figures out every ingredient and fills your Blinkit, Zepto or Instamart cart automatically.",
+  "description": "Type any dish. CookCart AI figures out every ingredient and fills your Blinkit or Zepto cart automatically.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

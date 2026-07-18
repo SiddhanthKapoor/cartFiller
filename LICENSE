@@ -23,6 +23,6 @@ SOFTWARE.
 ---
 
 NOTE: Third-party brand logos bundled under src/popup/assets/brands/ (Blinkit,
-Zepto, Swiggy, and AI-provider marks) are trademarks of their respective
+Zepto, and AI-provider marks) are trademarks of their respective
 owners and are NOT covered by the MIT license above. They are included only to
 identify the services this extension interoperates with.

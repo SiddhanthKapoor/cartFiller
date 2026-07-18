@@ -192,6 +192,8 @@ export function SettingsScreen({
             step={100}
             value={draft.budgetInr ?? 0}
             onChange={(e) => setDraft({ ...draft, budgetInr: Number(e.target.value) || null })}
+            aria-label="Default budget in rupees"
+            aria-valuetext={draft.budgetInr ? `₹${draft.budgetInr}` : 'Off'}
             className="w-full"
           />
           <span className="mt-2 block text-[11px] leading-relaxed text-mute">

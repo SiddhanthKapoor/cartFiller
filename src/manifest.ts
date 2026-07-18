@@ -5,7 +5,7 @@ export default defineManifest({
   name: 'CookCart AI',
   version: '0.1.0',
   description:
-    'Type any dish. CookCart AI figures out every ingredient and fills your Blinkit, Zepto or Instamart cart automatically.',
+    'Type any dish. CookCart AI figures out every ingredient and fills your Blinkit or Zepto cart automatically.',
   icons: {
     16: 'icons/icon-16.png',
     32: 'icons/icon-32.png',
@@ -26,8 +26,6 @@ export default defineManifest({
         'https://blinkit.com/*',
         'https://www.zeptonow.com/*',
         'https://www.zepto.com/*',
-        'https://www.swiggy.com/instamart*',
-        'https://www.swiggy.com/instamart/*',
       ],
       js: ['src/content/index.ts'],
       run_at: 'document_idle',
@@ -38,9 +36,6 @@ export default defineManifest({
     'https://blinkit.com/*',
     'https://www.zeptonow.com/*',
     'https://www.zepto.com/*',
-    // MV3 grants host_permissions at host granularity — the /instamart path is
-    // not enforced here (only the content_scripts match above is path-scoped).
-    'https://www.swiggy.com/instamart*',
     'https://generativelanguage.googleapis.com/*',
     'https://api.anthropic.com/*',
     'https://api.openai.com/*',

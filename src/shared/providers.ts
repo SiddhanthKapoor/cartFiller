@@ -32,17 +32,6 @@ export const PROVIDER_URLS: Record<ProviderId, ProviderUrls> = {
       /^www\.zepto(now)?\.com$/.test(url.hostname) && url.pathname.startsWith('/search'),
     matches: (url) => /^www\.zepto(now)?\.com$/.test(url.hostname),
   },
-  instamart: {
-    id: 'instamart',
-    origin: 'https://www.swiggy.com',
-    searchUrl: (q) =>
-      `https://www.swiggy.com/instamart/search?custom_back=true&query=${encodeURIComponent(q)}`,
-    cartHint: 'Open the cart from the Instamart header to check out.',
-    isSearchPage: (url) =>
-      url.hostname === 'www.swiggy.com' && url.pathname.startsWith('/instamart/search'),
-    matches: (url) =>
-      url.hostname === 'www.swiggy.com' && url.pathname.startsWith('/instamart'),
-  },
 }
 
 export function providerForUrl(url: URL): ProviderUrls | null {
